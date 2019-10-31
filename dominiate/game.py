@@ -29,13 +29,12 @@ class PlayerState(object):
         return PlayerState(player, hand=(), drawpile=(),
         discard=(copper,)*7 + (estate,)*3, tableau=()).next_turn()
 
-    @staticmethod
-    def card_tuple_to_vector(card_tuple):
-        counter = collections.Counter(card_tuple)
-        return [counter[card] for card in CARD_VECTOR_ORDER]
 
     def to_vector(self):
-        vec = [self.actions, self.buys, self.coins]
+        vec = [self.actions, self.buys, self.hand_value()]
+        def card_tuple_to_vector(card_tuple):
+            counter = collections.Counter(card_tuple)
+            return [counter[card] for card in CARD_VECTOR_ORDER]
         vec.extend(card_tuple_to_vector(self.hand))
         vec.extend(card_tuple_to_vector(self.drawpile))
         vec.extend(card_tuple_to_vector(self.discard))

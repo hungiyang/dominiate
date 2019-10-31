@@ -40,4 +40,5 @@ def human_game():
 
 if __name__ == '__main__':
     #print compare_bots([smithyComboBot, chapelComboBot, HillClimbBot(2, 3, 40)])
-    human_game()
+    #human_game()
+    test_game()
