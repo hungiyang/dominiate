@@ -1,4 +1,5 @@
-from game import Game, BuyDecision, ActDecision, TrashDecision, DiscardDecision, MultiDecision, INF
+from game import Game
+from decision import BuyDecision, ActDecision, TrashDecision, DiscardDecision, MultiDecision, INF
 import cards as c
 import logging
 

@@ -1,4 +1,4 @@
-from game import TrashDecision, DiscardDecision
+from decision import TrashDecision, DiscardDecision
 from players import AIPlayer, BigMoney
 import cards as c
 import logging, sys
