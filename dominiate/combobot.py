@@ -126,9 +126,11 @@ class ComboBot(IdealistComboBot):
         else:
             return [None, c.silver] + self.strategy_priority + [c.gold, c.province]
 
-
-smithyComboBot = ComboBot([(c.smithy, 2), (c.smithy, 6)],
+def smithyComboBotFactory():
+    return ComboBot([(c.smithy, 2), (c.smithy, 6)],
                    name='smithyComboBot')
+ 
+smithyComboBot = smithyComboBotFactory()
 
 chapelComboBot = ComboBot([(c.chapel, 0),
                            (c.laboratory, 0),

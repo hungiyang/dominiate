@@ -260,9 +260,9 @@ class Game(object):
             logid = 'Simulation'
         self.log = logging.getLogger(logid)
         if self.simulated:
-            self.log.setLevel(logging.WARN)
-        else:
             self.log.setLevel(logging.INFO)
+        else:
+            self.log.setLevel(logging.WARN)
 
     def copy(self):
         "Make an exact copy of this game state."
