@@ -84,12 +84,17 @@ class HumanPlayer(Player):
 class AIPlayer(Player):
     def __init__(self):
         self.log = logging.getLogger(self.name)
+        self.history = []
+        self.reward = []
     def setLogLevel(self, level):
         self.log.setLevel(level)
     def make_decision(self, decision):
         self.log.debug("Decision: %s" % decision)
+        r = 0
         if isinstance(decision, BuyDecision):
             choice = self.make_buy_decision(decision)
+            if isinstance(choice, c.Card):
+                r = choice.vp
         elif isinstance(decision, ActDecision):
             choice = self.make_act_decision(decision)
         elif isinstance(decision, DiscardDecision):
@@ -98,6 +103,9 @@ class AIPlayer(Player):
             choice = self.make_trash_decision(decision)
         else:
             raise NotImplementedError
+        self.history.append(decision.game.to_vector())
+        self.reward.append(r)
+
         return decision.choose(choice)
 
 class BigMoney(AIPlayer):
