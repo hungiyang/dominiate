@@ -132,3 +132,10 @@ moat = Card('Moat', 2, cards=2, isDefense=True)
 variable_cards = [village, cellar, smithy, festival, market, laboratory,
 chapel, warehouse, council_room, militia, moat]
 
+CARD_VECTOR_ORDER = (
+# Points
+curse, estate, duchy, province,
+# Treasures
+copper, silver, gold,
+# Actions
+village, cellar, smithy, festival, market, laboratory, chapel, warehouse, council_room, militia, moat)
