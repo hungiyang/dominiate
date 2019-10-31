@@ -4,6 +4,7 @@ from basic_ai import *
 from combobot import *
 from cards import variable_cards
 from collections import defaultdict
+from rl_agent import RLPlayer
 import random
 import pickle
 
@@ -39,14 +40,8 @@ def human_game():
     game = Game.setup([player1, player2, player3, player4], variable_cards[-10:])
     return game.run()
 
-def run():
-    """
-    Play a game of Dominion. Return a dictionary mapping players to scores.
-    """
-    player1 = smithyComboBot
-    player2 = chapelComboBot
-    # player3 = HillClimbBot(2, 3, 40)
-    game = Game.setup([player1, player2], variable_cards)
+def run(players):
+    game = Game.setup(players, variable_cards)
     while not game.over():
         game = game.take_turn()
     scores = [(state.player, state.score()) for state in game.playerstates]
@@ -54,7 +49,6 @@ def run():
     loser, _ = min(scores, key=lambda item: item[1])
     winner.reward[-1] += 100
     loser.reward[-1] += -100
-
     return scores
 
 def scores_to_data(scores, player = 0):
@@ -101,5 +95,5 @@ def load_game_data(filename):
 
 
 if __name__ == '__main__':
-    #print compare_bots([smithyComboBot, chapelComboBot, HillClimbBot(2, 3, 40)])
-    human_game()
+    players = [smithyComboBot, RLPlayer(lambda x: 0)]
+    print run(players)
