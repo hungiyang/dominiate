@@ -5,8 +5,9 @@ from combobot import *
 from cards import variable_cards
 from collections import defaultdict
 from rl_agent import RLPlayer
-import random
 import pickle
+import random
+import time
 
 def compare_bots(bots):
     scores = defaultdict(int)
@@ -73,16 +74,20 @@ def record_game(n, filename, players):
     """
     X = []
     Y = []
-    for i in xrange(10):
+    start_time = time.time()
+    for i in range(n):
+        if i % 10 == 0:
+          print "Playing game# %d" % i
+        players = [RLPlayer(lambda x: 0), smithyComboBotFactory()]
         xtmp, ytmp = scores_to_data(run(players))
         X.append(xtmp)
         Y.append(ytmp)
+    print "Took %.3f seconds" % (time.time() - start_time)
     X = np.concatenate(X)
     Y = np.concatenate(Y)
     # save X, Y to filename
     with open(filename, 'wb') as f:
         pickle.dump((X,Y), f)
-
     return 
 
 def load_game_data(filename):
@@ -95,5 +100,4 @@ def load_game_data(filename):
 
 
 if __name__ == '__main__':
-    players = [smithyComboBot, RLPlayer(lambda x: 0)]
-    print run(players)
+  record_game(1000, "data/smithy_vs_rl")
