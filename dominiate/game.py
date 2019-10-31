@@ -1,6 +1,7 @@
+import collections
 import random
 import logging
-from cards import copper, silver, gold, curse, estate, duchy, province
+from cards import copper, silver, gold, curse, estate, duchy, province, CARD_VECTOR_ORDER
 from decision import ActDecision, BuyDecision
 mainLog = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARN)
@@ -27,6 +28,19 @@ class PlayerState(object):
         # put it all in the discard pile so it auto-shuffles, then draw
         return PlayerState(player, hand=(), drawpile=(),
         discard=(copper,)*7 + (estate,)*3, tableau=()).next_turn()
+
+    @staticmethod
+    def card_tuple_to_vector(card_tuple):
+        counter = collections.Counter(card_tuple)
+        return [counter[card] for card in CARD_VECTOR_ORDER]
+
+    def to_vector(self):
+        vec = [self.actions, self.buys, self.coins]
+        vec.extend(card_tuple_to_vector(self.hand))
+        vec.extend(card_tuple_to_vector(self.drawpile))
+        vec.extend(card_tuple_to_vector(self.discard))
+        vec.extend(card_tuple_to_vector(self.tableau))
+        return vec
     
     def change(self, delta_actions=0, delta_buys=0, delta_cards=0, delta_coins=0):
         """
