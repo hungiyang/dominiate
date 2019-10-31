@@ -63,7 +63,7 @@ def scores_to_data(scores, player = 0):
 
     return (X,Y)
 
-def record_game(n, filename):
+def record_game(n, filename, players):
     """
     play n games and save the results in filename
     save tuple (X,Y)
@@ -74,7 +74,7 @@ def record_game(n, filename):
     X = []
     Y = []
     for i in xrange(10):
-        xtmp, ytmp = scores_to_data(run())
+        xtmp, ytmp = scores_to_data(run(players))
         X.append(xtmp)
         Y.append(ytmp)
     X = np.concatenate(X)
