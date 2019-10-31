@@ -78,7 +78,7 @@ def record_game(n, filename):
     for i in range(n):
         if i % 10 == 0:
           print "Playing game# %d" % i
-        players = [smithyComboBotFactory(), RLPlayer(lambda x: 0)]
+        players = [RLPlayer(lambda x: 0), smithyComboBotFactory()]
         xtmp, ytmp = scores_to_data(run(players))
         X.append(xtmp)
         Y.append(ytmp)
