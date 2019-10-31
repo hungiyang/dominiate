@@ -40,8 +40,9 @@ class BuyDecision(Decision):
         assert self.coins() >= 0
         value = self.coins()
         return [None] + [card for card in self.game.card_choices() if card.cost <= value]
-    def choose(self, card):
-        self.game.log.info("%s buys %s" % (self.player().name, card))
+    def choose(self, card, simulate=False):
+        if not simulate:
+            self.game.log.info("%s buys %s" % (self.player().name, card))
         state = self.state()
         if card is None:
             newgame = self.game.change_current_state(
