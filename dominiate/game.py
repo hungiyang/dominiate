@@ -6,6 +6,10 @@ from decision import ActDecision, BuyDecision
 mainLog = logging.getLogger(__name__)
 logging.basicConfig(level=logging.WARN)
 
+def card_tuple_to_vector(card_tuple):
+    counter = collections.Counter(card_tuple)
+    return [counter[card] for card in CARD_VECTOR_ORDER]
+
 class PlayerState(object):
     """
     A PlayerState represents all the game state that is particular to a player,
@@ -32,9 +36,6 @@ class PlayerState(object):
 
     def to_vector(self):
         vec = [self.actions, self.buys, self.hand_value()]
-        def card_tuple_to_vector(card_tuple):
-            counter = collections.Counter(card_tuple)
-            return [counter[card] for card in CARD_VECTOR_ORDER]
         vec.extend(card_tuple_to_vector(self.hand))
         vec.extend(card_tuple_to_vector(self.drawpile))
         vec.extend(card_tuple_to_vector(self.discard))
@@ -267,6 +268,13 @@ class Game(object):
         "Make an exact copy of this game state."
         return Game(self.playerstates[:], self.card_counts, self.turn,
                     self.simulated)
+    def to_vector(self):
+        vec = [self.card_counts.get(card, 0) for card in CARD_VECTOR_ORDER]
+        vec.extend(self.state().to_vector())
+        for i, s in enumerate(self.playerstates):
+            if i != self.player_turn:
+                vec.extend(card_tuple_to_vector(s.all_cards()))
+        return vec
 
     @staticmethod
     def setup(players, var_cards=(), simulated=False):
