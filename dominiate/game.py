@@ -268,6 +268,8 @@ class Game(object):
         "Make an exact copy of this game state."
         return Game(self.playerstates[:], self.card_counts, self.turn,
                     self.simulated)
+    # Converts the current game state to a vector presentation, which is:
+    # [cards in supply] + [current player state to_vector] + [other players all cards to_vector] 
     def to_vector(self):
         vec = [self.card_counts.get(card, 0) for card in CARD_VECTOR_ORDER]
         vec.extend(self.state().to_vector())
