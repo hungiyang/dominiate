@@ -9,9 +9,9 @@ import pickle
 import random
 import time
 
-def compare_bots(bots):
-    scores = defaultdict(int)
-    for i in xrange(50):
+def compare_bots(bots, num_games=50):
+    scores = {bot: 0 for bot in bots}
+    for i in range(num_games):
         random.shuffle(bots)
         game = Game.setup(bots, variable_cards)
         results = game.run()
@@ -112,4 +112,5 @@ def load_game_data(filename):
 
 if __name__ == '__main__':
   players = [RLPlayer(lambda x: 0), smithyComboBotFactory()]
-  record_game(1000, players, "data/smithy_vs_rl")
+  print(compare_bots(players))
+  #record_game(1000, players, "data/smithy_vs_rl")
