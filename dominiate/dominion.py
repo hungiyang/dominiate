@@ -52,7 +52,7 @@ def run(players):
     loser.reward[-1] += -10
     return scores
 
-def scores_to_data(scores, gamma = 0.95):
+def scores_to_data(scores, record=[True, True], gamma = 0.95):
     """
     output both player's history and reward in the form of numpy array
     turn the scores output from run() to X = (m, len(data vector)) is the game state array
@@ -62,16 +62,18 @@ def scores_to_data(scores, gamma = 0.95):
     Xlist = []
     Ylist = []
     for player, _ in scores:
-        Xlist.append(np.array(player.history))
-        Y_this = np.zeros_like(player.reward)
-        for i,r in enumerate(player.reward[::-1]):
-            Y_this[i] = r + gamma*Y_this[i-1]
-        Ylist.append(Y_this[::-1])
+        # save the score of the player that we want
+        if record[int(player.name)]:
+            Xlist.append(np.array(player.history))
+            Y_this = np.zeros_like(player.reward)
+            for i,r in enumerate(player.reward[::-1]):
+                Y_this[i] = r + gamma*Y_this[i-1]
+            Ylist.append(Y_this[::-1])
     X = np.concatenate(Xlist)
     Y = np.concatenate(Ylist)
     return (X,Y)
 
-def record_game(n, players, filename=''):
+def record_game(n, players, record=[True, True] , filename=''):
     """
     play n games and save the results in filename
     save tuple (X,Y)
@@ -82,6 +84,9 @@ def record_game(n, players, filename=''):
     X = []
     Y = []
     start_time = time.time()
+    # give the players name
+    for i,p in enumerate(players):
+        p.name = str(i)
     for i in range(n):
         if i % 100 == 0:
           print("Playing game# %d" % i)
@@ -89,7 +94,7 @@ def record_game(n, players, filename=''):
         for p in players:
             p.reward = []
             p.history = []
-        xtmp, ytmp = scores_to_data(run(players))
+        xtmp, ytmp = scores_to_data(run(players), record)
         X.append(xtmp)
         Y.append(ytmp)
     print("Took %.3f seconds" % (time.time() - start_time))
