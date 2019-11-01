@@ -1,6 +1,7 @@
 import collections
 import random
 import logging
+import numpy as np
 from cards import copper, silver, gold, curse, estate, duchy, province, CARD_VECTOR_ORDER
 from decision import ActDecision, BuyDecision
 mainLog = logging.getLogger(__name__)

@@ -18,7 +18,8 @@ class RLPlayer(AIPlayer):
         buy_priority.
         """
         choices = decision.choices()
-        advantage_fn = lambda choice: self.value_fn(decision.choose(choice, simulate=True).to_vector()) + (choice.vp if choice else 0)
+        advantage_fn = lambda choice: self.value_fn(np.array(decision.choose(choice, simulate=True).to_vector()).reshape(1,-1))\
+                + (choice.vp if choice else 0)
         advantages = np.array([advantage_fn(choice) for choice in choices])
         weights = np.exp(advantages)
         prob = weights / np.sum(weights)

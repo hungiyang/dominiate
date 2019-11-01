@@ -48,23 +48,30 @@ def run(players):
     scores = [(state.player, state.score()) for state in game.playerstates]
     winner, _ = max(scores, key=lambda item: item[1])
     loser, _ = min(scores, key=lambda item: item[1])
-    winner.reward[-1] += 100
-    loser.reward[-1] += -100
+    winner.reward[-1] += 10
+    loser.reward[-1] += -10
     return scores
 
-def scores_to_data(scores, player = 0):
+def scores_to_data(scores, gamma = 0.95):
     """
-    output player 0's history and reward in the form of numpy array
+    output both player's history and reward in the form of numpy array
     turn the scores output from run() to X = (m, len(data vector)) is the game state array
     and Y = (m, 1) is the reward array
-    where m is the number of samples. (number of states)
+    where m is the number of states that were played through in the game
     """
-    X = np.array(scores[player][0].history)
-    Y = np.array(scores[player][0].reward)
-
+    Xlist = []
+    Ylist = []
+    for player, _ in scores:
+        Xlist.append(np.array(player.history))
+        Y_this = np.zeros_like(player.reward)
+        for i,r in enumerate(player.reward[::-1]):
+            Y_this[i] = r + gamma*Y_this[i-1]
+        Ylist.append(Y_this[::-1])
+    X = np.concatenate(Xlist)
+    Y = np.concatenate(Ylist)
     return (X,Y)
 
-def record_game(n, filename, players):
+def record_game(n, players, filename=''):
     """
     play n games and save the results in filename
     save tuple (X,Y)
@@ -76,9 +83,13 @@ def record_game(n, filename, players):
     Y = []
     start_time = time.time()
     for i in range(n):
-        if i % 10 == 0:
+        if i % 100 == 0:
           print "Playing game# %d" % i
-        players = [RLPlayer(lambda x: 0), smithyComboBotFactory()]
+        # clear player history
+        for p in players:
+            p.reward = []
+            p.history = []
+        #players = [RLPlayer(lambda x: 0), smithyComboBotFactory()]
         xtmp, ytmp = scores_to_data(run(players))
         X.append(xtmp)
         Y.append(ytmp)
@@ -86,9 +97,10 @@ def record_game(n, filename, players):
     X = np.concatenate(X)
     Y = np.concatenate(Y)
     # save X, Y to filename
-    with open(filename, 'wb') as f:
-        pickle.dump((X,Y), f)
-    return 
+    if not filename == '':
+        with open(filename, 'wb') as f:
+            pickle.dump((X,Y), f)
+    return (X,Y)
 
 def load_game_data(filename):
     """
