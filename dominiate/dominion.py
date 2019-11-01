@@ -84,16 +84,15 @@ def record_game(n, players, filename=''):
     start_time = time.time()
     for i in range(n):
         if i % 100 == 0:
-          print "Playing game# %d" % i
+          print("Playing game# %d" % i)
         # clear player history
         for p in players:
             p.reward = []
             p.history = []
-        #players = [RLPlayer(lambda x: 0), smithyComboBotFactory()]
         xtmp, ytmp = scores_to_data(run(players))
         X.append(xtmp)
         Y.append(ytmp)
-    print "Took %.3f seconds" % (time.time() - start_time)
+    print("Took %.3f seconds" % (time.time() - start_time))
     X = np.concatenate(X)
     Y = np.concatenate(Y)
     # save X, Y to filename
@@ -112,4 +111,5 @@ def load_game_data(filename):
 
 
 if __name__ == '__main__':
-  record_game(1000, "data/smithy_vs_rl")
+  players = [RLPlayer(lambda x: 0), smithyComboBotFactory()]
+  record_game(1000, players, "data/smithy_vs_rl")

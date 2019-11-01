@@ -68,10 +68,24 @@ class Card(object):
         return game
 
     def __str__(self): return self.name
-    def __cmp__(self, other):
-        if other is None: return -1
-        return cmp((self.cost, self.name), 
-                   (other.cost, other.name))
+    def __eq__(self, other):
+        if other is None:
+             return False
+        return (self.cost, self.name) == (other.cost, other.name)
+    def __ne__(self, other):
+        return not (self == other)
+    def __lt__(self, other):
+        if other is None:
+            return True
+        return (self.cost, self.name) < (other.cost, other.name)
+    def __le__(self, other):
+        return self < other or self == other
+    def __gt__(self, other):
+        if other is None:
+            return False
+        return other < self
+    def __ge__(self, other):
+        return self > other or self == other
     def __hash__(self):
         return hash(self.name)
     def __repr__(self): return self.name

@@ -1,4 +1,4 @@
-INF = ()
+INF = float('Inf')
 
 class Decision(object):
     def __init__(self, game):

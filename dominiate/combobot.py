@@ -33,8 +33,8 @@ def big_money_baseline():
             counts[turn] += 1
             if game.over(): break
         avg = [imp/count for imp, count in zip(improvements, counts)]
-        print avg
-        print counts
+        print(avg)
+        print(counts)
     return avg
 
 # precalculated; easier than loading a pickle or something
