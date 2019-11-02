@@ -4,27 +4,13 @@ import cards as c
 
 from players import AIPlayer
 
-class RLPlayer(AIPlayer):
-    def __init__(self, value_fn):
-        self.value_fn = value_fn
-        self.name = "RLPlayer"
+class BuyPolicyPlayer(AIPlayer):
+    def __init__(self):
         AIPlayer.__init__(self)
 
     def make_buy_decision(self, decision):
-        """
-        Choose a card to buy.
+        raise NotImplementedError("BuyPolicyPlayer is an abstract class.") 
 
-        By default, this chooses the card with the highest positive
-        buy_priority.
-        """
-        choices = decision.choices()
-        advantage_fn = lambda choice: self.value_fn(np.array(decision.choose(choice, simulate=True).to_vector()).reshape(1,-1))\
-                + (choice.vp if choice else 0)
-        advantages = np.array([advantage_fn(choice) for choice in choices])
-        weights = np.exp(advantages)
-        prob = weights / np.sum(weights)
-        return np.random.choice(choices, p=prob)
-    
     def act_priority(self, decision, choice):
         """
         Assign a numerical priority to each action. Higher priority actions
@@ -128,3 +114,35 @@ class RLPlayer(AIPlayer):
                 chosen.append(latest)
         return chosen
 
+class RandomPlayer(BuyPolicyPlayer):
+    def __init__(self):
+        self.name = "RandomPlayer"
+        BuyPolicyPlayer.__init__(self)
+
+    def make_buy_decision(self, decision):
+        choices = decision.choices()
+        return np.random.choice(choices)
+
+class RLPlayer(BuyPolicyPlayer):
+    def __init__(self, value_fn):
+        self.value_fn = value_fn
+        self.name = "RLPlayer"
+        BuyPolicyPlayer.__init__(self)
+
+    def advantage(self, decision):
+        choices = decision.choices()
+        X = np.array([np.array(decision.choose(choice, simulate=True).to_vector()) for choice in choices])
+        rewards = np.array([choice.vp if choice else 0 for choice in choices])
+        return self.value_fn(X) + rewards
+
+    def make_buy_decision(self, decision):
+        """
+        Choose a card to buy.
+
+        By default, this chooses the card with the highest positive
+        buy_priority.
+        """
+        choices = decision.choices()
+        weights = np.exp(self.advantage(decision))
+        prob = weights / np.sum(weights)
+        return np.random.choice(choices, p=prob)
