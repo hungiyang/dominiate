@@ -52,9 +52,10 @@ def run(players):
     loser.reward[-1] += -10
     return scores
 
-def scores_to_data(scores, gamma = 0.95):
+def scores_to_data(scores, output_player="RLPlayer", gamma = 0.95):
     """
-    output both player's history and reward in the form of numpy array
+    output history and reward in the form of numpy array
+    Outputs all player if output_player is None. Otherwise, only output for the given player.
     turn the scores output from run() to X = (m, len(data vector)) is the game state array
     and Y = (m, 1) is the reward array
     where m is the number of states that were played through in the game
@@ -62,6 +63,8 @@ def scores_to_data(scores, gamma = 0.95):
     Xlist = []
     Ylist = []
     for player, _ in scores:
+        if output_player and player.name != output_player:
+            continue
         Xlist.append(np.array(player.history))
         Y_this = np.zeros_like(player.reward)
         for i,r in enumerate(player.reward[::-1]):
