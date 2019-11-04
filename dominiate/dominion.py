@@ -9,9 +9,9 @@ import pickle
 import random
 import time
 
-def compare_bots(bots):
-    scores = defaultdict(int)
-    for i in xrange(50):
+def compare_bots(bots, num_games=50):
+    scores = {bot: 0 for bot in bots}
+    for i in range(num_games):
         random.shuffle(bots)
         game = Game.setup(bots, variable_cards)
         results = game.run()
@@ -52,9 +52,10 @@ def run(players):
     loser.reward[-1] += -10
     return scores
 
-def scores_to_data(scores, record=[True, True], gamma = 0.95):
+def scores_to_data(scores, output_player="RLPlayer", gamma = 0.95):
     """
-    output both player's history and reward in the form of numpy array
+    output history and reward in the form of numpy array
+    Outputs all player if output_player is None. Otherwise, only output for the given player.
     turn the scores output from run() to X = (m, len(data vector)) is the game state array
     and Y = (m, 1) is the reward array
     where m is the number of states that were played through in the game
@@ -62,18 +63,18 @@ def scores_to_data(scores, record=[True, True], gamma = 0.95):
     Xlist = []
     Ylist = []
     for player, _ in scores:
-        # save the score of the player that we want
-        if record[int(player.name)]:
-            Xlist.append(np.array(player.history))
-            Y_this = np.zeros_like(player.reward)
-            for i,r in enumerate(player.reward[::-1]):
-                Y_this[i] = r + gamma*Y_this[i-1]
-            Ylist.append(Y_this[::-1])
+        if output_player and player.name != output_player:
+            continue
+        Xlist.append(np.array(player.history))
+        Y_this = np.zeros_like(player.reward)
+        for i,r in enumerate(player.reward[::-1]):
+            Y_this[i] = r + gamma*Y_this[i-1]
+        Ylist.append(Y_this[::-1])
     X = np.concatenate(Xlist)
     Y = np.concatenate(Ylist)
     return (X,Y)
 
-def record_game(n, players, record=[True, True] , filename=''):
+def record_game(n, players, filename=''):
     """
     play n games and save the results in filename
     save tuple (X,Y)
@@ -94,7 +95,7 @@ def record_game(n, players, record=[True, True] , filename=''):
         for p in players:
             p.reward = []
             p.history = []
-        xtmp, ytmp = scores_to_data(run(players), record)
+        xtmp, ytmp = scores_to_data(run(players))
         X.append(xtmp)
         Y.append(ytmp)
     print("Took %.3f seconds" % (time.time() - start_time))
@@ -117,4 +118,5 @@ def load_game_data(filename):
 
 if __name__ == '__main__':
   players = [RLPlayer(lambda x: 0), smithyComboBotFactory()]
-  record_game(1000, players, "data/smithy_vs_rl")
+  print(compare_bots(players))
+  #record_game(1000, players, "data/smithy_vs_rl")
