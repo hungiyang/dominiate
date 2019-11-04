@@ -85,6 +85,9 @@ def record_game(n, players, filename=''):
     X = []
     Y = []
     start_time = time.time()
+    # give the players name
+    for i,p in enumerate(players):
+        p.name = str(i)
     for i in range(n):
         if i % 100 == 0:
           print("Playing game# %d" % i)
