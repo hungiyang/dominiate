@@ -124,9 +124,10 @@ class RandomPlayer(BuyPolicyPlayer):
         return np.random.choice(choices)
 
 class RLPlayer(BuyPolicyPlayer):
-    def __init__(self, value_fn):
+    def __init__(self, value_fn, epsilon=0.1):
         self.value_fn = value_fn
         self.name = "RLPlayer"
+        self.epsilon = epsilon
         BuyPolicyPlayer.__init__(self)
 
     def advantage(self, decision):
@@ -143,6 +144,9 @@ class RLPlayer(BuyPolicyPlayer):
         buy_priority.
         """
         choices = decision.choices()
+        # Random exploration with probability epsilon.
+        if (np.random.random() < self.epsilon):
+            return np.random.choice(choices)
         weights = np.exp(self.advantage(decision))
         prob = weights / np.sum(weights)
         return np.random.choice(choices, p=prob)
