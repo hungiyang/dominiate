@@ -65,7 +65,7 @@ def scores_to_data(scores, output_player="RLPlayer", gamma = 0.95):
     for player, _ in scores:
         if output_player and player.name != output_player:
             continue
-        Xlist.append(np.array(player.history))
+        Xlist.append(np.array(player.states))
         Y_this = np.zeros_like(player.reward)
         for i,r in enumerate(player.reward[::-1]):
             Y_this[i] = r + gamma*Y_this[i-1]
@@ -90,8 +90,7 @@ def record_game(n, players, filename=''):
           print("Playing game# %d" % i)
         # clear player history
         for p in players:
-            p.reward = []
-            p.history = []
+            p.reset_history()
         xtmp, ytmp = scores_to_data(run(players))
         X.append(xtmp)
         Y.append(ytmp)

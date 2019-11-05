@@ -1,3 +1,4 @@
+import numpy as np
 from decision import TrashDecision, DiscardDecision
 
 class Card(object):
@@ -153,3 +154,11 @@ curse, estate, duchy, province,
 copper, silver, gold,
 # Actions
 village, cellar, smithy, festival, market, laboratory, chapel, warehouse, council_room, militia, moat)
+
+CARD_TO_INDEX = {c : i for i, c in enumerate(CARD_VECTOR_ORDER)}
+
+def card_to_vector(card):
+    vec = np.zeros(len(CARD_VECTOR_ORDER))
+    if card:
+        vec[CARD_TO_INDEX[card]] = 1
+    return vec
