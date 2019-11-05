@@ -93,7 +93,7 @@ class AIPlayer(Player):
         # s_{t+1}
         self.next_states = []
         # r(s_t, a_t).
-        self.reward = []
+        self.rewards = []
     def setLogLevel(self, level):
         self.log.setLevel(level)
     def make_decision(self, decision):
@@ -106,7 +106,7 @@ class AIPlayer(Player):
             self.states.append(decision.game.to_vector())
             self.actions.append(c.card_to_vector(choice))
             self.next_states.append(decision.choose(choice).to_vector())
-            self.reward.append(r)
+            self.rewards.append(r)
         elif isinstance(decision, ActDecision):
             choice = self.make_act_decision(decision)
         elif isinstance(decision, DiscardDecision):

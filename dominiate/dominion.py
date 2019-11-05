@@ -48,11 +48,11 @@ def run(players):
     scores = [(state.player, state.score()) for state in game.playerstates]
     winner, _ = max(scores, key=lambda item: item[1])
     loser, _ = min(scores, key=lambda item: item[1])
-    winner.reward[-1] += 10
-    loser.reward[-1] += -10
+    winner.rewards[-1] += 100
+    loser.rewards[-1] += -100
     return scores
 
-def scores_to_data(scores, output_player="RLPlayer", gamma = 0.95):
+def scores_to_data(scores, output_player="RLPlayer", gamma = 0.999):
     """
     output history and reward in the form of numpy array
     Outputs all player if output_player is None. Otherwise, only output for the given player.
@@ -74,7 +74,7 @@ def scores_to_data(scores, output_player="RLPlayer", gamma = 0.95):
     Y = np.concatenate(Ylist)
     return (X,Y)
 
-def record_game(n, players, filename=''):
+def record_game(n, players, output_player="RLPlayer", filename=''):
     """
     play n games and save the results in filename
     save tuple (X,Y)
@@ -82,8 +82,10 @@ def record_game(n, players, filename=''):
     Y has size (m, 1)
     m is the number of game states recorded
     """
-    X = []
-    Y = []
+    states = []
+    actions = []
+    rewards = []
+    next_states = []
     start_time = time.time()
     for i in range(n):
         if i % 100 == 0:
@@ -91,17 +93,22 @@ def record_game(n, players, filename=''):
         # clear player history
         for p in players:
             p.reset_history()
-        xtmp, ytmp = scores_to_data(run(players))
-        X.append(xtmp)
-        Y.append(ytmp)
+        run(players)
+        for p in players:
+            if p.name == output_player:
+                states.append(p.states)
+                actions.append(p.actions)
+                rewards.append(p.rewards)
+                next_states.append(p.next_states)
     print("Took %.3f seconds" % (time.time() - start_time))
-    X = np.concatenate(X)
-    Y = np.concatenate(Y)
-    # save X, Y to filename
+    states = np.concatenate(states)
+    actions = np.concatenate(actions)
+    rewards = np.concatenate(rewards)
+    next_states = np.concatenate(next_states)
     if not filename == '':
         with open(filename, 'wb') as f:
-            pickle.dump((X,Y), f)
-    return (X,Y)
+            pickle.dump((states, actions, rewards, next_states), f)
+    return states, actions, rewards, next_states
 
 def load_game_data(filename):
     """
