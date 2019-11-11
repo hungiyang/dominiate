@@ -84,6 +84,7 @@ class HumanPlayer(Player):
 class AIPlayer(Player):
     def __init__(self):
         self.log = logging.getLogger(self.name)
+        self.record_history = False
         self.reset_history()
     def reset_history(self):
         # s_t in RL.

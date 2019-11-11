@@ -132,9 +132,17 @@ class RLPlayer(BuyPolicyPlayer):
 
     def advantage(self, decision):
         choices = decision.choices()
-        X = np.array([np.array(decision.choose(choice, simulate=True).to_vector()) for choice in choices])
-        rewards = np.array([choice.vp if choice else 0 for choice in choices])
-        return self.value_fn(X) + rewards
+        choices_vec = np.zeros((len(choices), len(c.CARD_VECTOR_ORDER)))
+        if not choices:
+            return choices
+        for i, choice in enumerate(choices):
+            choices_vec[i,:] = c.card_to_vector(choice)
+        state = np.tile(np.array(decision.game.to_vector()), (len(choices), 1))
+        X = np.concatenate((state, choices_vec), axis=1)
+        return self.value_fn(X)
+        #X = np.array([np.array(decision.choose(choice, simulate=True).to_vector()) for choice in choices])
+        #rewards = np.array([choice.vp if choice else 0 for choice in choices])
+        #return self.value_fn(X) + rewards
 
     def make_buy_decision(self, decision):
         """
@@ -147,6 +155,5 @@ class RLPlayer(BuyPolicyPlayer):
         # Random exploration with probability epsilon.
         if (np.random.random() < self.epsilon):
             return np.random.choice(choices)
-        weights = np.exp(self.advantage(decision))
-        prob = weights / np.sum(weights)
-        return np.random.choice(choices, p=prob)
+        weights = self.advantage(decision)
+        return choices[np.argmax(weights)]
