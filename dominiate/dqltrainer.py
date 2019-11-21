@@ -11,6 +11,7 @@ class DQLagent():
         # number of samples drawn every time
         self.mtrain = 100
         self.gamma = 0.99
+        self.epsilon = 0.3
         self.create_model()
 
     def create_model(self):
@@ -81,16 +82,17 @@ class DQLagent():
         self.model_target.save(fname.join('_target.h5'))
         return
 
-    def generate_data(self, ngames=50):
+    def generate_data(self, ngames=50, fname=''):
         """
         generate a new batch of data with the latest prediction model self.model_predict
         """
         vf = lambda x: self.model_predict.predict(x)
         p1 = RLPlayer(vf)
+        p1.epsilon = self.epsilon
         p1.record_history = 1
         p2 = RandomPlayer()
         p2.record_history = 0
-        return record_game(ngames, [p1,p2])
+        return record_game(ngames, [p1,p2],fname)
 
 
 

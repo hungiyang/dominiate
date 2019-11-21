@@ -10,6 +10,7 @@ import random
 import time
 
 def compare_bots(bots, num_games=50):
+    start_time = time.time()
     scores = {bot: 0 for bot in bots}
     for i in range(num_games):
         random.shuffle(bots)
@@ -22,6 +23,7 @@ def compare_bots(bots, num_games=50):
             if score == maxscore:
                 scores[bot] += 1
                 break
+    print("Took %.3f seconds" % (time.time() - start_time))
     return scores
 
 def test_game():
@@ -43,8 +45,16 @@ def human_game():
 
 def run(players):
     game = Game.setup(players, variable_cards)
+    # seems to have a bug that does not terminate game
+    # set a limit of 5000 turns 
+    k = 0
     while not game.over():
-        game = game.take_turn()
+        if k >5000:
+            print('terminate after 5000 turns!')
+            break
+        else:
+            game = game.take_turn()
+            k += 1
     scores = [(state.player, state.score()) for state in game.playerstates]
     winner, _ = max(scores, key=lambda item: item[1])
     loser, _ = min(scores, key=lambda item: item[1])
@@ -128,8 +138,7 @@ def load_game_data(filename):
     load filename saved by record_game()
     """
     with open(filename, 'rb') as f:
-        (X,Y) = pickle.load(f)
-    return X,Y
+        return  pickle.load(f)
 
 
 if __name__ == '__main__':
