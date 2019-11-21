@@ -56,15 +56,15 @@ def scores_to_data(scores, gamma = 0.999):
     """
     output history and reward in the form of numpy array
     Outputs all player if output_player is None. Otherwise, only output for the given player.
-    turn the scores output from run() to X = (m, len(data vector)) is the game state array
-    and Y = (m, 1) is the reward array
+    turn the scores output from run() to X = (m, len(data vector)): the game state array
+    and Y = (m, 1): the reward array
     where m is the number of states that were played through in the game
     """
     states = []
     actions = []
     rewards = []
     next_states = []
-    aggregated_rewards = []
+    #aggregated_rewards = []
     for player, _ in scores:
         if not player.record_history:
             continue
@@ -72,11 +72,11 @@ def scores_to_data(scores, gamma = 0.999):
         actions.append(player.actions)
         rewards.append(player.rewards)
         next_states.append(player.next_states)
-        ar = np.zeros_like(player.rewards)
-        for i,r in enumerate(player.rewards[::-1]):
-            ar[i] = r + gamma*ar[i-1]
-        aggregated_rewards.append(ar[::-1])
-    return np.concatenate(states), np.concatenate(actions), np.concatenate(aggregated_rewards)
+        #ar = np.zeros_like(player.rewards)
+        #for i,r in enumerate(player.rewards[::-1]):
+        #    ar[i] = r + gamma*ar[i-1]
+        #aggregated_rewards.append(ar[::-1])
+    return np.concatenate(states), np.concatenate(actions), np.concatenate(rewards), np.concatenate(next_states)
 
 def record_game(n, players, filename=''):
     """
@@ -88,7 +88,9 @@ def record_game(n, players, filename=''):
     """
     states = []
     actions = []
-    aggregated_rewards = []
+    rewards = []
+    next_states = []
+    #aggregated_rewards = []
     start_time = time.time()
     for i in range(n):
         if i % 100 == 0:
@@ -96,18 +98,30 @@ def record_game(n, players, filename=''):
         # clear player history
         for p in players:
             p.reset_history()
-        s, a, r = scores_to_data(run(players))
+        s, a, r, n = scores_to_data(run(players))
         states.append(s)
         actions.append(a)
-        aggregated_rewards.append(r)
+        rewards.append(r)
+        next_states.append(n)
+        #aggregated_rewards.append(r)
     print("Took %.3f seconds" % (time.time() - start_time))
     states = np.concatenate(states)
     actions = np.concatenate(actions)
-    aggregated_rewards = np.concatenate(aggregated_rewards)
+    rewards = np.concatenate(rewards).reshape([-1,1])
+    next_states = np.concatenate(next_states)
+    #aggregated_rewards = np.concatenate(aggregated_rewards)
+    # only save the data vector if a card is bought (action!=0)
+    select = np.sum(actions, 1) > 0
+    states = states[select,:]
+    actions = actions[select,:]
+    rewards = rewards[select,:]
+    next_states = next_states[select,:]
     if not filename == '':
         with open(filename, 'wb') as f:
             pickle.dump((states, actions, rewards, next_states), f)
-    return states, actions, aggregated_rewards
+    return states, actions, rewards, next_states
+
+
 
 def load_game_data(filename):
     """

@@ -76,6 +76,11 @@ class DQLagent():
             for i in range(self.predict_iterations):
                 model_predict = self.fit_target(self.draw_sample(data))
 
+    def save_model(self, fname='test'):
+        self.model_predict.save(fname.join('_predict.h5'))
+        self.model_target.save(fname.join('_target.h5'))
+        return
+
     def generate_data(self, ngames=50):
         """
         generate a new batch of data with the latest prediction model self.model_predict
@@ -83,8 +88,8 @@ class DQLagent():
         vf = lambda x: self.model_predict.predict(x)
         p1 = RLPlayer(vf)
         p1.record_history = 1
-        p2 = RLPlayer(vf)
-        p2.record_history = 1
+        p2 = RandomPlayer()
+        p2.record_history = 0
         return record_game(ngames, [p1,p2])
 
 
