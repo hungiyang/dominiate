@@ -15,22 +15,25 @@ p1 = RandomPlayer()
 p1.record_history = 1
 p2 = RandomPlayer()
 p2.record_Plahistory = 1
-data = record_game(500, [p1,p2], 'data/iteration_0')
-data0 = data
+data = record_game(1000, [p1,p2], 'data/iteration_0')
 
-dql = DQLagent()
+# set the network size to the input vector length
+dql = DQLagent(length=(data[0].shape[1]+data[1].shape[1]))
+dql.mtrain = 1000
 dql.target_iterations=50
-dql.predic_iterations=50
+dql.predic_iterations=200
 dql.do_target_iteration(data)
 
 # use dql vs. random player's game log to train
-dql.target_iterations=30
-dql.predic_iterations=30
-for i in range(100):
-    data = dql.generate_data(100, 'data/iteration_{:03d}'.format(i+1))
+dql.target_iterations=50
+dql.predic_iterations=200
+for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    data = dql.generate_data(500, 'data2/iteration_{:03d}'.format(i+1))
     dql.do_target_iteration(data)
     # dql.save_weights('model/iteration_{:03d}'.format(i+1))
     vf = lambda x: dql.model_predict.predict(x)
-    p1 = RLPlayer(vf)
+    # evaluate the model with the epsilon greedy part
+    p1 = RLPlayer(vf,0)
     p2 = RandomPlayer()
-    print(compare_bots([p1, p2],10))
+    print(compare_bots([p1, p2],20))

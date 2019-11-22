@@ -4,30 +4,43 @@ import numpy as np
 import tensorflow as tf
 
 class DQLagent():
-    def __init__(self, epochs=10):
+    def __init__(self, epochs=10, length=129):
         self.epochs=epochs
         self.target_iterations=4
         self.predict_iterations=4
+        self.length = length
         # number of samples drawn every time
-        self.mtrain = 100
-        self.gamma = 0.99
+        self.mtrain = 1000
+        self.gamma = 0.8
         self.epsilon = 0.3
         self.create_model()
 
     def create_model(self):
         model = tf.keras.models.Sequential([
-          tf.keras.layers.Dense(129, activation='relu'),
+          tf.keras.layers.Dense(self.length, activation='relu'),
           tf.keras.layers.Dropout(0.2),
-          tf.keras.layers.Dense(129, activation='relu'),
+          tf.keras.layers.Dense(self.length, activation='relu'),
           tf.keras.layers.Dropout(0.2),
           tf.keras.layers.Dense(30, activation='relu'),
           tf.keras.layers.Dropout(0.2),
-          tf.keras.layers.Dense(1, activation='sigmoid')
+          tf.keras.layers.Dense(1, activation='linear')
         ])
         model.compile(optimizer='adam',
                       loss='mean_squared_error',
                       metrics=['mean_squared_error'])
         self.model_predict = model
+        model = tf.keras.models.Sequential([
+          tf.keras.layers.Dense(self.length, activation='relu'),
+          tf.keras.layers.Dropout(0.2),
+          tf.keras.layers.Dense(self.length, activation='relu'),
+          tf.keras.layers.Dropout(0.2),
+          tf.keras.layers.Dense(30, activation='relu'),
+          tf.keras.layers.Dropout(0.2),
+          tf.keras.layers.Dense(1, activation='linear')
+        ])
+        model.compile(optimizer='adam',
+                      loss='mean_squared_error',
+                      metrics=['mean_squared_error'])
         self.model_target = model
         return
 
@@ -73,9 +86,10 @@ class DQLagent():
     def do_target_iteration(self,data):
         for j in range(self.target_iterations):
             print('start target model iteration {:d}'.format(j))
-            self.model_target = self.model_predict
+            # set the weights of the target model to predict model
+            self.model_target.set_weights(self.model_predict.get_weights()) 
             for i in range(self.predict_iterations):
-                model_predict = self.fit_target(self.draw_sample(data))
+                self.fit_target(self.draw_sample(data))
 
     def save_model(self, fname='test'):
         self.model_predict.save(fname.join('_predict.h5'))

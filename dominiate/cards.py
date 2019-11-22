@@ -143,10 +143,20 @@ council_room = Card('Council Room', 5, cards=4, buys=1,
                     effect=council_room_action)
 militia = Card('Militia', 4, coins=2, effect=militia_attack)
 moat = Card('Moat', 2, cards=2, isDefense=True)
-
+"""
 variable_cards = [village, cellar, smithy, festival, market, laboratory,
 chapel, warehouse, council_room, militia, moat]
+"""
+# for now limit cards to only points plus treasure
+variable_cards = []
 
+CARD_VECTOR_ORDER = (
+# Points
+estate, duchy, province,
+# Treasures
+copper, silver, gold)
+
+"""
 CARD_VECTOR_ORDER = (
 # Points
 curse, estate, duchy, province,
@@ -154,6 +164,7 @@ curse, estate, duchy, province,
 copper, silver, gold,
 # Actions
 village, cellar, smithy, festival, market, laboratory, chapel, warehouse, council_room, militia, moat)
+"""
 
 CARD_TO_INDEX = {c : i for i, c in enumerate(CARD_VECTOR_ORDER)}
 
