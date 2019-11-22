@@ -75,7 +75,7 @@ def scores_to_data(scores, gamma = 0.999):
     rewards = []
     next_states = []
     #aggregated_rewards = []
-    for player, _ in scores:
+    for player, fs in scores:
         if not player.record_history:
             continue
         states.append(player.states)
@@ -86,7 +86,9 @@ def scores_to_data(scores, gamma = 0.999):
         #for i,r in enumerate(player.rewards[::-1]):
         #    ar[i] = r + gamma*ar[i-1]
         #aggregated_rewards.append(ar[::-1])
-    return np.concatenate(states), np.concatenate(actions), np.concatenate(rewards), np.concatenate(next_states)
+    final_score = {bot: fs for bot, fs in scores}
+    
+    return np.concatenate(states), np.concatenate(actions), np.concatenate(rewards), np.concatenate(next_states), final_score
 
 def record_game(n, players, filename=''):
     """
@@ -102,19 +104,28 @@ def record_game(n, players, filename=''):
     next_states = []
     #aggregated_rewards = []
     start_time = time.time()
+    final_scores = {bot:[] for bot in players}
     for i in range(n):
         if i % 100 == 0:
           print("Playing game# %d" % i)
         # clear player history
         for p in players:
             p.reset_history()
-        s, a, r, n = scores_to_data(run(players))
+        s, a, r, n, fs = scores_to_data(run(players))
         states.append(s)
         actions.append(a)
         rewards.append(r)
         next_states.append(n)
+        for bot, fs_this in fs.items():
+            final_scores[bot].append(fs_this)
         #aggregated_rewards.append(r)
     print("Took %.3f seconds" % (time.time() - start_time))
+    # show the winrate of bots in the recorded games
+    bot1, bot2 = final_scores.keys()
+    bot1win = np.sum(np.array(final_scores[bot1]) > np.array(final_scores[bot2]))
+    bot2win = len(final_scores[bot1]) - bot1win
+    print({bot1:bot1win, bot2:bot2win})
+    # turn outputs into np array
     states = np.concatenate(states)
     actions = np.concatenate(actions)
     rewards = np.concatenate(rewards).reshape([-1,1])

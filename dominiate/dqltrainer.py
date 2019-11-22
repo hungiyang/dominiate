@@ -14,6 +14,8 @@ class DQLagent():
         self.gamma = 0.8
         self.epsilon = 0.3
         self.create_model()
+        self.data = []
+        self.replaybuffer = 1000000
 
     def create_model(self):
         model = tf.keras.models.Sequential([
@@ -43,6 +45,17 @@ class DQLagent():
                       metrics=['mean_squared_error'])
         self.model_target = model
         return
+
+    def add_data(self, data):
+        if self.data == []:
+            self.data = data
+        else:
+            self.data = tuple([np.concatenate([d_this, data[i]]) for i,d_this in enumerate(self.data)])
+        # truncate data down to replay buffer size
+        if self.data[0].shape[0] > self.replaybuffer:
+            self.data = tuple([d_this[-self.replaybuffer:,:] for d_this in self.data])
+        return
+        
 
     def compute_target(self, data):
         """
@@ -75,25 +88,30 @@ class DQLagent():
         self.model_predict.fit(sa, target, epochs=self.epochs, verbose = 0)
         return
 
-    def draw_sample(self,data):
+    def draw_sample(self):
         """
         draw random samples from the full dataset generated
         """
-        m = data[1].shape[0]
+        m = self.data[1].shape[0]
         select = np.random.choice(m,self.mtrain,replace=False)
-        return tuple([d[select,:] for d in data])
+        return tuple([d[select,:] for d in self.data])
 
-    def do_target_iteration(self,data):
+    def do_target_iteration(self):
         for j in range(self.target_iterations):
             print('start target model iteration {:d}'.format(j))
             # set the weights of the target model to predict model
             self.model_target.set_weights(self.model_predict.get_weights()) 
             for i in range(self.predict_iterations):
-                self.fit_target(self.draw_sample(data))
+                self.fit_target(self.draw_sample())
 
     def save_model(self, fname='test'):
-        self.model_predict.save(fname.join('_predict.h5'))
-        self.model_target.save(fname.join('_target.h5'))
+        self.model_predict.save_weights(fname.join('_predict'))
+        self.model_target.save_weights(fname.join('_target'))
+        return
+
+    def load_model(self, fname='test'):
+        self.model_predict.load_weights(fname.join('_predict'))
+        self.model_target.load_weights(fname.join('_target'))
         return
 
     def generate_data(self, ngames=50, fname=''):
@@ -106,7 +124,9 @@ class DQLagent():
         p1.record_history = 1
         p2 = RandomPlayer()
         p2.record_history = 0
-        return record_game(ngames, [p1,p2],fname)
+        d_this = record_game(ngames, [p1,p2],fname)
+        self.add_data(d_this)
+        return d_this
 
 
 
