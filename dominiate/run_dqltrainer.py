@@ -23,14 +23,12 @@ data = load_game_data('data/5000random')
 dql = DQLagent(length=(data[0].shape[1]+data[1].shape[1]))
 dql.add_data(data)
 dql.mtrain = 1000
-dql.target_iterations=30
-dql.predic_iterations=200
+dql.target_iterations=5
+dql.predict_iterations=200
 
 # use dql vs. random player's game log to train
-dql.target_iterations=50
-dql.predic_iterations=200
 for i in range(1000):
     print('data generation iteration {:d}'.format(i))
     dql.do_target_iteration()
+    dql.save_model('./model/iteration_{:03d}'.format(i+1))
     dql.generate_data(100, 'data/iteration_{:03d}'.format(i+1))
-    dql.save_model('model/iteration_{:03d}'.format(i+1))

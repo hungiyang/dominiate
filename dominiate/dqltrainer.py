@@ -6,8 +6,8 @@ import tensorflow as tf
 class DQLagent():
     def __init__(self, epochs=10, length=129):
         self.epochs=epochs
-        self.target_iterations=4
-        self.predict_iterations=4
+        self.target_iterations=5
+        self.predict_iterations=200
         self.length = length
         # number of samples drawn every time
         self.mtrain = 1000
@@ -105,13 +105,13 @@ class DQLagent():
                 self.fit_target(self.draw_sample())
 
     def save_model(self, fname='test'):
-        self.model_predict.save_weights(fname.join('_predict'))
-        self.model_target.save_weights(fname.join('_target'))
+        self.model_predict.save_weights(fname + '_predict.h5')
+        self.model_target.save_weights(fname + '_target.h5')
         return
 
     def load_model(self, fname='test'):
-        self.model_predict.load_weights(fname.join('_predict'))
-        self.model_target.load_weights(fname.join('_target'))
+        self.model_predict.load_weights(fname + '_predict.h5')
+        self.model_target.load_weights(fname + '_target.h5')
         return
 
     def generate_data(self, ngames=50, fname=''):
