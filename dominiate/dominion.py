@@ -58,8 +58,8 @@ def run(players):
     scores = [(state.player, state.score()) for state in game.playerstates]
     winner, _ = max(scores, key=lambda item: item[1])
     loser, _ = min(scores, key=lambda item: item[1])
-    winner.rewards[-1] += 100
-    loser.rewards[-1] += -100
+    winner.rewards[-1] += 0#100
+    loser.rewards[-1] += 0#-100
     return scores
 
 def scores_to_data(scores, gamma = 0.999):
@@ -124,7 +124,10 @@ def record_game(n, players, filename=''):
     bot1, bot2 = final_scores.keys()
     bot1win = np.sum(np.array(final_scores[bot1]) > np.array(final_scores[bot2]))
     bot2win = len(final_scores[bot1]) - bot1win
+    bot1avg = np.mean(final_scores[bot1])
+    bot2avg = np.mean(final_scores[bot2])
     print({bot1:bot1win, bot2:bot2win})
+    print({bot1:bot1avg, bot2:bot2avg})
     # turn outputs into np array
     states = np.concatenate(states)
     actions = np.concatenate(actions)

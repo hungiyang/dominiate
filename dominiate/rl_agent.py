@@ -124,8 +124,11 @@ class RandomPlayer(BuyPolicyPlayer):
         return np.random.choice(choices)
 
 class RLPlayer(BuyPolicyPlayer):
-    def __init__(self, value_fn, epsilon=0.1):
+    def __init__(self, value_fn, epsilon=0.1, include_action=1):
         self.value_fn = value_fn
+        # if input is (s,a): include_action = 1
+        # if input is (s): include_action = 0
+        self.include_action = include_action
         self.name = "RLPlayer"
         self.epsilon = epsilon
         BuyPolicyPlayer.__init__(self)
@@ -138,11 +141,15 @@ class RLPlayer(BuyPolicyPlayer):
         for i, choice in enumerate(choices):
             choices_vec[i,:] = c.card_to_vector(choice)
         state = np.tile(np.array(decision.game.to_vector()), (len(choices), 1))
-        X = np.concatenate((state, choices_vec), axis=1)
-        return self.value_fn(X)
-        #X = np.array([np.array(decision.choose(choice, simulate=True).to_vector()) for choice in choices])
-        #rewards = np.array([choice.vp if choice else 0 for choice in choices])
-        #return self.value_fn(X) + rewards
+        if self.include_action:
+            X = np.concatenate((state, choices_vec), axis=1)
+            return self.value_fn(X)
+        else:
+            X = np.array([np.array(decision.choose(choice, simulate=True).to_vector()) for choice in choices])
+            rewards = np.array([choice.vp if choice else 0 for choice in choices]).reshape([-1,1])
+            advantage = self.value_fn(X) + rewards
+            return advantage
+
 
     def make_buy_decision(self, decision):
         """
