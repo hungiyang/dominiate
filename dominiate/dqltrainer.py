@@ -11,8 +11,8 @@ class DQLagent():
         self.length = length
         # number of samples drawn every time
         self.mtrain = 1000
-        self.gamma = 0.8
-        self.epsilon = 0.3
+        self.gamma = 0.99
+        self.epsilon = 0.1
         self.create_model()
         self.data = []
         self.replaybuffer = 1000000
@@ -53,6 +53,7 @@ class DQLagent():
             self.data = tuple([np.concatenate([d_this, data[i]]) for i,d_this in enumerate(self.data)])
         # truncate data down to replay buffer size
         if self.data[0].shape[0] > self.replaybuffer:
+            print('truncate {:d} samples'.format(self.data[0].shape[0] - self.replaybuffer))
             self.data = tuple([d_this[-self.replaybuffer:,:] for d_this in self.data])
         return
         
@@ -117,6 +118,7 @@ class DQLagent():
     def generate_data(self, ngames=50, fname=''):
         """
         generate a new batch of data with the latest prediction model self.model_predict
+        rl vs. random bot
         """
         vf = lambda x: self.model_predict.predict(x)
         p1 = RLPlayer(vf)
@@ -129,7 +131,37 @@ class DQLagent():
         return d_this
 
 
+    def generate_data_smithy(self, ngames=50, fname=''):
+        """
+        generate a new batch of data with the latest prediction model self.model_predict
+        rl vs. smithy bot
+        """
+        vf = lambda x: self.model_predict.predict(x)
+        p1 = RLPlayer(vf)
+        p1.epsilon = self.epsilon
+        p1.record_history = 1
+        p2 = SmithyBot()
+        p2.record_history = 0
+        d_this = record_game(ngames, [p1,p2],fname)
+        self.add_data(d_this)
+        return d_this
 
+
+    def generate_data_rl(self, ngames=50, fname=''):
+        """
+        generate a new batch of data with the latest prediction model self.model_predict
+        rl vs. smithy bot
+        """
+        vf = lambda x: self.model_predict.predict(x)
+        p1 = RLPlayer(vf)
+        p1.epsilon = self.epsilon
+        p1.record_history = 1
+        p2 = RLPlayer(vf)
+        p2.epsilon = self.epsilon
+        p2.record_history = 1
+        d_this = record_game(ngames, [p1,p2],fname)
+        self.add_data(d_this)
+        return d_this
 
 
 
