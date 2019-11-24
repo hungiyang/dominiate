@@ -11,20 +11,24 @@ import time
 
 def compare_bots(bots, num_games=50):
     start_time = time.time()
-    scores = {bot: 0 for bot in bots}
+    wins = {bot: 0 for bot in bots}
+    final_scores = {bot:[] for bot in bots}
     for i in range(num_games):
         random.shuffle(bots)
         game = Game.setup(bots, variable_cards)
         results = game.run()
         maxscore = 0
         for bot, score in results:
+            final_scores[bot].append(score)
             if score > maxscore: maxscore = score
         for bot, score in results:
             if score == maxscore:
-                scores[bot] += 1
+                wins[bot] += 1
                 break
+    for bot in final_scores.keys():
+        final_scores[bot] = np.mean(final_scores[bot])
     print("Took %.3f seconds" % (time.time() - start_time))
-    return scores
+    return wins, final_scores
 
 def test_game():
     player1 = smithyComboBot
@@ -62,7 +66,7 @@ def run(players):
     loser.rewards[-1] += 0#-100
     return scores
 
-def scores_to_data(scores, gamma = 0.999):
+def scores_to_data(scores, gamma = 0.99):
     """
     output history and reward in the form of numpy array
     Outputs all player if output_player is None. Otherwise, only output for the given player.
@@ -74,7 +78,7 @@ def scores_to_data(scores, gamma = 0.999):
     actions = []
     rewards = []
     next_states = []
-    #aggregated_rewards = []
+    aggregated_rewards = []
     for player, fs in scores:
         if not player.record_history:
             continue
@@ -82,13 +86,13 @@ def scores_to_data(scores, gamma = 0.999):
         actions.append(player.actions)
         rewards.append(player.rewards)
         next_states.append(player.next_states)
-        #ar = np.zeros_like(player.rewards)
-        #for i,r in enumerate(player.rewards[::-1]):
-        #    ar[i] = r + gamma*ar[i-1]
-        #aggregated_rewards.append(ar[::-1])
+        ar = np.zeros_like(player.rewards,dtype=float)
+        for i,r in enumerate(player.rewards[::-1]):
+            ar[i] = r + gamma*ar[i-1]
+        aggregated_rewards.append(ar[::-1])
     final_score = {bot: fs for bot, fs in scores}
     
-    return np.concatenate(states), np.concatenate(actions), np.concatenate(rewards), np.concatenate(next_states), final_score
+    return np.concatenate(states), np.concatenate(actions), np.concatenate(rewards), np.concatenate(next_states),np.concatenate(aggregated_rewards), final_score
 
 def record_game(n, players, filename=''):
     """
@@ -102,7 +106,7 @@ def record_game(n, players, filename=''):
     actions = []
     rewards = []
     next_states = []
-    #aggregated_rewards = []
+    aggregated_rewards = []
     start_time = time.time()
     final_scores = {bot:[] for bot in players}
     for i in range(n):
@@ -111,14 +115,14 @@ def record_game(n, players, filename=''):
         # clear player history
         for p in players:
             p.reset_history()
-        s, a, r, n, fs = scores_to_data(run(players))
+        s, a, r, n, ar, fs = scores_to_data(run(players))
         states.append(s)
         actions.append(a)
         rewards.append(r)
         next_states.append(n)
+        aggregated_rewards.append(ar)
         for bot, fs_this in fs.items():
             final_scores[bot].append(fs_this)
-        #aggregated_rewards.append(r)
     print("Took %.3f seconds" % (time.time() - start_time))
     # show the winrate of bots in the recorded games
     bot1, bot2 = final_scores.keys()
@@ -133,17 +137,18 @@ def record_game(n, players, filename=''):
     actions = np.concatenate(actions)
     rewards = np.concatenate(rewards).reshape([-1,1])
     next_states = np.concatenate(next_states)
-    #aggregated_rewards = np.concatenate(aggregated_rewards)
+    aggregated_rewards = np.concatenate(aggregated_rewards).reshape([-1,1])
     # only save the data vector if a card is bought (action!=0)
     select = np.sum(actions, 1) > 0
     states = states[select,:]
     actions = actions[select,:]
     rewards = rewards[select,:]
     next_states = next_states[select,:]
+    aggregated_rewards = aggregated_rewards[select,:]
     if not filename == '':
         with open(filename, 'wb') as f:
-            pickle.dump((states, actions, rewards, next_states), f)
-    return states, actions, rewards, next_states
+            pickle.dump((states, actions, rewards, next_states, aggregated_rewards), f)
+    return states, actions, rewards, next_states, aggregated_rewards
 
 
 

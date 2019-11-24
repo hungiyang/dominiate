@@ -67,7 +67,7 @@ class DQLagent():
         It outputs the target that the deep neural network wants to fit for.
         shape of action is 18
         """
-        s,a,r,n = data
+        s,a,r,n,_ = data
         allact = np.identity(a.shape[1])
         # array of (18, number of samples, state action pair)
         tmp = np.array([self.model_target.predict(np.concatenate([n, np.tile(act, [n.shape[0],1])],axis=1))\
@@ -83,7 +83,7 @@ class DQLagent():
         computes the target network prediction and fit for it with prediction network
         """
         # state, action, reward, next state
-        s,a,r,n = data
+        s,a,r,n,_ = data
         sa = np.concatenate([s,a],axis=1)
         target = self.compute_target(data)
         self.model_predict.fit(sa, target, epochs=self.epochs, verbose = 0)
