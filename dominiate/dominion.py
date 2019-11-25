@@ -8,6 +8,8 @@ from rl_agent import RLPlayer
 import pickle
 import random
 import time
+from sarsa_trainer import SarsaAgent
+import tensorflow as tf
 
 def compare_bots(bots, num_games=50):
     start_time = time.time()
@@ -39,6 +41,21 @@ def test_game():
     results = game.run()
     return results
 
+def play_rlbot(fname='model/rand_v0_iteration_665'):
+    player1 = HumanPlayer('You')
+    # initialize the network
+    dql = SarsaAgent()
+    dql.create_model_5layers()
+    data = dql.load_game_data('data/1game')
+    dql.fit(data)
+    dql.load_model(fname)
+    player2 = RLPlayer(lambda x: dql.model.predict(x))
+    player2.epsilon=0
+    player2.setLogLevel(logging.INFO)
+    game = Game.setup([player1, player2], variable_cards)
+    game.simulated = False
+    return game.run()
+
 def human_game():
     player1 = smithyComboBot
     player2 = chapelComboBot
@@ -47,7 +64,7 @@ def human_game():
     game = Game.setup([player1, player2, player3, player4], variable_cards[-10:])
     return game.run()
 
-def run(players):
+def run(players, win_reward = 0):
     game = Game.setup(players, variable_cards)
     # seems to have a bug that does not terminate game
     # set a limit of 5000 turns 
@@ -62,8 +79,8 @@ def run(players):
     scores = [(state.player, state.score()) for state in game.playerstates]
     winner, _ = max(scores, key=lambda item: item[1])
     loser, _ = min(scores, key=lambda item: item[1])
-    winner.rewards[-1] += 0#100
-    loser.rewards[-1] += 0#-100
+    winner.rewards[-1] += win_reward
+    loser.rewards[-1] += -win_reward
     return scores
 
 def scores_to_data(scores, gamma = 0.99):
@@ -94,7 +111,7 @@ def scores_to_data(scores, gamma = 0.99):
     
     return np.concatenate(states), np.concatenate(actions), np.concatenate(rewards), np.concatenate(next_states),np.concatenate(aggregated_rewards), final_score
 
-def record_game(n, players, filename=''):
+def record_game(n, players, filename='', win_reward=0, verbose=1):
     """
     play n games and save the results in filename
     save tuple (X,Y)
@@ -115,7 +132,7 @@ def record_game(n, players, filename=''):
         # clear player history
         for p in players:
             p.reset_history()
-        s, a, r, n, ar, fs = scores_to_data(run(players))
+        s, a, r, n, ar, fs = scores_to_data(run(players, win_reward))
         states.append(s)
         actions.append(a)
         rewards.append(r)
@@ -130,8 +147,9 @@ def record_game(n, players, filename=''):
     bot2win = len(final_scores[bot1]) - bot1win
     bot1avg = np.mean(final_scores[bot1])
     bot2avg = np.mean(final_scores[bot2])
-    print({bot1:bot1win, bot2:bot2win})
-    print({bot1:bot1avg, bot2:bot2avg})
+    if verbose:
+        print({bot1:bot1win, bot2:bot2win})
+        print({bot1:bot1avg, bot2:bot2avg})
     # turn outputs into np array
     states = np.concatenate(states)
     actions = np.concatenate(actions)

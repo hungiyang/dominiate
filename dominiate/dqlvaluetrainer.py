@@ -179,6 +179,7 @@ class ARagent():
     Go back to our initial idea of training aggregated reward directly.
     No need for two net work. Just one network to fit for the aggregated reward for 
     each (s,a) pair
+    Legacy code. Made the new sarsa_trainer.py and SarsaAgent() class
     """
     def __init__(self, epochs=10, length=129):
         self.epochs=epochs
@@ -194,6 +195,26 @@ class ARagent():
 
     def create_model(self):
         model = tf.keras.models.Sequential([
+          tf.keras.layers.Dense(self.length, activation='relu'),
+          tf.keras.layers.Dropout(0.2),
+          tf.keras.layers.Dense(self.length, activation='relu'),
+          tf.keras.layers.Dropout(0.2),
+          tf.keras.layers.Dense(30, activation='relu'),
+          tf.keras.layers.Dropout(0.2),
+          tf.keras.layers.Dense(1, activation='linear')
+        ])
+        model.compile(optimizer='adam',
+                      loss='mean_squared_error',
+                      metrics=['mean_squared_error'])
+        self.model = model
+        return
+
+    def create_model_5layers(self):
+        model = tf.keras.models.Sequential([
+          tf.keras.layers.Dense(self.length, activation='relu'),
+          tf.keras.layers.Dropout(0.2),
+          tf.keras.layers.Dense(self.length, activation='relu'),
+          tf.keras.layers.Dropout(0.2),
           tf.keras.layers.Dense(self.length, activation='relu'),
           tf.keras.layers.Dropout(0.2),
           tf.keras.layers.Dense(self.length, activation='relu'),
@@ -302,6 +323,6 @@ class ARagent():
         p2.epsilon = self.epsilon
         p2.record_history = 1
         p2.include_action = 1
-        d_this = record_game(ngames, [p1,p2],fname)
+        d_this = record_game(ngames, [p1,p2],fname, win_reward = 100, verbose=0)
         self.add_data(d_this)
         return d_this

@@ -249,7 +249,7 @@ VICTORY_CARDS = {
 }
 
 class Game(object):
-    def __init__(self, playerstates, card_counts, turn=0, simulated=False):
+    def __init__(self, playerstates, card_counts, turn=0, simulated=True):
         self.playerstates = playerstates
         self.card_counts = card_counts
         self.turn = turn
@@ -261,9 +261,9 @@ class Game(object):
             logid = 'Simulation'
         self.log = logging.getLogger(logid)
         if self.simulated:
-            self.log.setLevel(logging.INFO)
-        else:
             self.log.setLevel(logging.WARN)
+        else:
+            self.log.setLevel(logging.INFO)
 
     def copy(self):
         "Make an exact copy of this game state."
@@ -280,7 +280,7 @@ class Game(object):
         return vec
 
     @staticmethod
-    def setup(players, var_cards=(), simulated=False):
+    def setup(players, var_cards=(), simulated=True):
         "Set up the game."
         counts = {
             estate: VICTORY_CARDS[len(players)],

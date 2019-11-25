@@ -4,6 +4,9 @@ import numpy as np
 import tensorflow as tf
 
 class DQLagent():
+    """
+    Legacy code. Does not work.
+    """
     def __init__(self, epochs=10, length=129):
         self.epochs=epochs
         self.target_iterations=5

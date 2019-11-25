@@ -15,12 +15,81 @@ from dqlvaluetrainer import DQLValueAgent, ARagent
 # 1. add the average score of rl bots when generating data.
 # 2. This gives a measure of how well they are improving 
 #    Even when the win rate is 0 or 100%
+do_ar_rl = 1
 do_ar = 0
-do_ar_smithy = 1
+do_ar_smithy = 0
+do_ar_fullcards = 0
 do_random = 0
 do_smithy = 0
 do_rl = 0
 do_continue = 0
+
+# let the 
+
+
+# use the full sets of cards
+# use rl bot vs. rl bot to train
+# add win lose reward (modified dominion.py)
+if do_ar_rl:
+    # start with random player's game log
+    p1 = RandomPlayer()
+    p1.record_history = 1
+    p2 = RandomPlayer()
+    p2.record_history = 1
+    data = record_game(1, [p1,p2])
+
+    # set the network size to the input vector length
+    dql = ARagent(length=(data[0].shape[1]+data[1].shape[1]))
+    dql.fit(data) # to establish the network
+    dql.load_model('model/full_iteration_018')
+    dql.generate_data_rl(500)
+    dql.add_data(data)
+    dql.mtrain = 5000
+    dql.replaybuffer = 1e6
+    dql.fit_iterations = 10
+    dql.epochs = 10
+    dql.epsilon = 0.05
+
+    # use dql vs. random player's game log to train
+    for i in range(1000):
+        print('data sample size = {:d}'.format(dql.data[0].shape[0]))
+        dql.do_train()
+        dql.save_model('./model/rl_iteration_{:03d}'.format(i+1))
+        print('data generation iteration {:d}'.format(i))
+        dql.generate_data_rl(200)
+        # evaluate against random bot and smithy bot
+        p1 = RLPlayer(lambda x: dql.model.predict(x))
+        p1.epsilon=0.0
+        print(compare_bots([p1, RandomPlayer()],10))
+        print(compare_bots([p1, SmithyBot()],10))
+
+
+
+# use the full sets of cards
+if do_ar_fullcards:
+    # start with random player's game log
+    p1 = RandomPlayer()
+    p1.record_history = 1
+    p2 = RandomPlayer()
+    p2.record_history = 1
+    data = record_game(1000, [p1,p2], 'data/1000full')
+
+    # set the network size to the input vector length
+    dql = ARagent(length=(data[0].shape[1]+data[1].shape[1]))
+    dql.add_data(data)
+    dql.mtrain = 5000
+    dql.replaybuffer = 5e6
+    dql.fit_iterations = 10
+    dql.epochs = 10
+    dql.epsilon = 0.05
+
+    # use dql vs. random player's game log to train
+    for i in range(1000):
+        print('data sample size = {:d}'.format(dql.data[0].shape[0]))
+        dql.do_train()
+        dql.save_model('./model/full_iteration_{:03d}'.format(i+1))
+        print('data generation iteration {:d}'.format(i))
+        dql.generate_data(100)
 
 # train with aggregated_rewards
 if do_ar:
