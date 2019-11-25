@@ -46,7 +46,7 @@ def play_rlbot(fname='model/rand_v0_iteration_665'):
     # initialize the network
     dql = SarsaAgent()
     dql.create_model_5layers()
-    data = dql.load_game_data('data/1game')
+    data = dql.load_game_data('1game')
     dql.fit(data)
     dql.load_model(fname)
     player2 = RLPlayer(lambda x: dql.model.predict(x))
