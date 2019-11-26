@@ -11,13 +11,21 @@ import time
 from sarsa_trainer import SarsaAgent
 import tensorflow as tf
 
-def compare_bots(bots, num_games=50):
+def compare_bots(bots, num_games=50, order = 0):
+    """
+    Compare the performance of the two bots
+    Since when winrate is close, who goes first matters a lot, 
+    I'll add that to the comparison
+    """
     start_time = time.time()
     wins = {bot: 0 for bot in bots}
     final_scores = {bot:[] for bot in bots}
     for i in range(num_games):
-        random.shuffle(bots)
+        # random.shuffle(bots)
         game = Game.setup(bots, variable_cards)
+        if order:
+            if game.playerstates[0].player != bots[0]:
+                game.playerstates.reverse()
         results = game.run()
         maxscore = 0
         for bot, score in results:
@@ -32,6 +40,50 @@ def compare_bots(bots, num_games=50):
     print("Took %.3f seconds" % (time.time() - start_time))
     return wins, final_scores
 
+def compare_rl_bots(fn1, fn2, num_games = 50, order = 0):
+    # set up the two rl bots, and make them fight.
+    print('setting up bot1...')
+    dql = SarsaAgent()
+    dql.create_model_5layers()
+    data = dql.load_game_data('1game')
+    dql.fit(data)
+    dql.load_model(fn1)
+    p1 = RLPlayer(lambda x: dql.model.predict(x))
+    p1.name = fn1
+    p1.epsilon = 0
+    print('setting up bot2...')
+    dql2 = SarsaAgent()
+    dql2.create_model_5layers()
+    data = dql2.load_game_data('1game')
+    dql2.fit(data)
+    dql2.load_model(fn1)
+    p2 = RLPlayer(lambda x: dql2.model.predict(x))
+    p2.name = fn2
+    p2.epsilon = 0
+    print('fight!')
+    return compare_bots([p1, p2], num_games, order)
+    
+def load_rl_bot(fn, dql=''):
+    if dql == '':
+        # has not initialize SarsaAgent's model network, start a new one
+        dql = SarsaAgent()
+        dql.create_model_5layers()
+        data = dql.load_game_data('1game')
+        dql.fit(data)
+        dql.load_model(fn)
+        p1 = RLPlayer(lambda x: dql.model.predict(x))
+        p1.name = fn
+    else:
+        dql.load_model(fn)
+        p1 = RLPlayer(lambda x: dql.model.predict(x))
+        p1.name = fn
+    p1.epsilon = 0
+    return (p1, dql)
+
+
+    
+    
+
 def test_game():
     player1 = smithyComboBot
     player2 = chapelComboBot
@@ -41,7 +93,8 @@ def test_game():
     results = game.run()
     return results
 
-def play_rlbot(fname='model/rand_v0_iteration_665'):
+def play_rlbot(fname='model_upload/combination_v0_iteration_999'):
+    # 764 also quite strong
     player1 = HumanPlayer('You')
     # initialize the network
     dql = SarsaAgent()
@@ -52,16 +105,17 @@ def play_rlbot(fname='model/rand_v0_iteration_665'):
     player2 = RLPlayer(lambda x: dql.model.predict(x))
     player2.epsilon=0
     player2.setLogLevel(logging.INFO)
-    game = Game.setup([player1, player2], variable_cards)
-    game.simulated = False
+    game = Game.setup([player1, player2], variable_cards,False)
     return game.run()
 
 def human_game():
-    player1 = smithyComboBot
-    player2 = chapelComboBot
-    player3 = HillClimbBot(2, 3, 40)
+    #player1 = smithyComboBot
+    #player2 = chapelComboBot
+    #player3 = HillClimbBot(2, 3, 40)
+    player1 = SmithyBot()
     player4 = HumanPlayer('You')
-    game = Game.setup([player1, player2, player3, player4], variable_cards[-10:])
+    #game = Game.setup([player1, player2, player3, player4], variable_cards[-10:])
+    game = Game.setup([player1, player4], variable_cards,False)
     return game.run()
 
 def run(players, win_reward = 0):

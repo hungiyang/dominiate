@@ -1,2 +1,3 @@
 *.pyc
 dominiate/data/*
+dominiate/model/*
