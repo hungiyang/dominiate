@@ -136,13 +136,17 @@ def militia_attack(game):
         lambda g: DiscardDecision(g, 2, 2)
     )
 
+def witch_attack(game):
+    return game.curse_others()
+
 chapel = Card('Chapel', 2, effect=chapel_action)
 cellar = Card('Cellar', 2, actions=1, effect=cellar_action)
 warehouse = Card('Warehouse', 3, cards=3, actions=1, effect=warehouse_action)
 council_room = Card('Council Room', 5, cards=4, buys=1,
                     effect=council_room_action)
-militia = Card('Militia', 4, coins=2, effect=militia_attack)
+militia = Card('Militia', 4, coins=2, effect=militia_attack, isAttack=True)
 moat = Card('Moat', 2, cards=2, isDefense=True)
+witch = Card('Witch', 5, cards=2, effect=witch_attack, isAttack=True)
 
 """
 # for now limit cards to only points plus treasure
@@ -154,7 +158,18 @@ estate, duchy, province,
 copper, silver, gold)
 """
 
+# Try adding curse to available cards
+variable_cards = [village, cellar, smithy, festival, market, laboratory,
+chapel, warehouse, council_room, militia, moat, witch]
+CARD_VECTOR_ORDER = (
+# Points
+curse, estate, duchy, province,
+# Treasures
+copper, silver, gold,
+# Actions
+village, cellar, smithy, festival, market, laboratory, chapel, warehouse, council_room, militia, moat, witch)
 
+"""
 variable_cards = [village, cellar, smithy, festival, market, laboratory,
 chapel, warehouse, council_room, militia, moat]
 CARD_VECTOR_ORDER = (
@@ -164,6 +179,7 @@ curse, estate, duchy, province,
 copper, silver, gold,
 # Actions
 village, cellar, smithy, festival, market, laboratory, chapel, warehouse, council_room, militia, moat)
+"""
 
 CARD_TO_INDEX = {c : i for i, c in enumerate(CARD_VECTOR_ORDER)}
 

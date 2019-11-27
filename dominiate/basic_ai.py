@@ -30,6 +30,39 @@ class SmithyBot(BigMoney):
     def make_act_decision(self, decision):
         return c.smithy
 
+class SmithyCouncilBot(BigMoney):
+    def __init__(self, cutoff1=3, cutoff2=6, cards_per_smithy=8):
+        self.cards_per_smithy = 8
+        self.name = 'SmithyCouncilBot(%d, %d, %d)' % (cutoff1, cutoff2,
+        cards_per_smithy)
+        BigMoney.__init__(self, cutoff1, cutoff2)
+    
+    def num_smithies(self, state):
+        return list(state.all_cards()).count(c.smithy) + list(state.all_cards()).count(c.council_room)
+
+    def buy_priority_order(self, decision):
+        state = decision.state()
+        provinces_left = decision.game.card_counts[c.province]
+        if provinces_left <= self.cutoff1:
+            order = [None, c.estate, c.silver, c.duchy, c.province]
+        elif provinces_left <= self.cutoff2:
+            order = [None, c.silver, c.smithy, c.council_room, c.duchy, c.gold, c.province]
+        else:
+            order = [None, c.silver, c.smithy, c.council_room, c.gold, c.province]
+        if ((self.num_smithies(state) + 1) * self.cards_per_smithy
+           > state.deck_size()):
+            if (c.smithy in order):
+                order.remove(c.smithy)
+            if (c.council_room in order):
+                order.remove(c.council_room)
+        return order
+
+    def make_act_decision(self, decision):
+        if c.council_room in decision.choices():
+            return c.council_room
+        return c.smithy
+
+
 class HillClimbBot(BigMoney):
     def __init__(self, cutoff1=2, cutoff2=3, simulation_steps=100):
         self.simulation_steps = simulation_steps

@@ -9,7 +9,7 @@ import pickle
 import random
 import time
 from sarsa_trainer import SarsaAgent
-import tensorflow as tf
+#import tensorflow as tf
 
 def compare_bots(bots, num_games=50, order = 0):
     """
@@ -112,7 +112,7 @@ def human_game():
     #player1 = smithyComboBot
     #player2 = chapelComboBot
     #player3 = HillClimbBot(2, 3, 40)
-    player1 = SmithyBot()
+    player1 = SmithyCouncilBot()
     player4 = HumanPlayer('You')
     #game = Game.setup([player1, player2, player3, player4], variable_cards[-10:])
     game = Game.setup([player1, player4], variable_cards,False)

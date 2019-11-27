@@ -286,6 +286,7 @@ class Game(object):
             estate: VICTORY_CARDS[len(players)],
             duchy: VICTORY_CARDS[len(players)],
             province: VICTORY_CARDS[len(players)],
+            curse: 10*(len(players)-1),
             copper: 60 - 7*len(players),
             silver: 40,
             gold: 30
@@ -373,6 +374,19 @@ class Game(object):
         the current state.
         """
         return self.replace_current_state(self.state().change(**changes))
+
+    def curse_others(self):
+        """
+        all other player adds a curse
+        """
+        newgame = self.copy()
+        for i in range(self.num_players()):
+            if newgame.card_counts[curse] > 0:
+                if i == self.player_turn: continue
+                newgame.playerstates[i] = newgame.playerstates[i].gain(curse)
+                newgame.card_counts[curse] -= 1
+        return newgame
+
 
     def change_other_states(self, **changes):
         """
