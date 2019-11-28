@@ -123,6 +123,22 @@ class RandomPlayer(BuyPolicyPlayer):
         choices = decision.choices()
         return np.random.choice(choices)
 
+class RandomActPlayer(BuyPolicyPlayer):
+    """
+    Buy cards and play actions randomly
+    """
+    def __init__(self):
+        self.name = "RandomActPlayer"
+        BuyPolicyPlayer.__init__(self)
+
+    def make_buy_decision(self, decision):
+        choices = decision.choices()
+        return np.random.choice(choices)
+
+    def make_act_decision(self, decision):
+        choices = decision.choices()
+        return np.random.choice(choices)
+
 class RLPlayer(BuyPolicyPlayer):
     def __init__(self, value_fn, epsilon=0.1, include_action=1):
         self.value_fn = value_fn
@@ -164,3 +180,62 @@ class RLPlayer(BuyPolicyPlayer):
             return np.random.choice(choices)
         weights = self.advantage(decision)
         return choices[np.argmax(weights)]
+
+
+    def act_priority(self, decision, choice):
+        """
+        Assign a numerical priority to each action. Higher priority actions
+        will be chosen first.
+        """
+        if choice is None: return 0
+        return (100*choice.actions + 20*choice._isAttack + 15*choice.cards +  10*choice.coins +
+                    choice.buys) + 1
+    
+    def make_act_decision(self, decision):
+        """
+        Choose an Action to play.
+
+        By default, this chooses the action with the highest positive
+        act_priority.
+        """
+        choices = decision.choices()
+        choices.sort(key=lambda x: self.act_priority(decision, x))
+        return choices[-1]
+
+# create a class for a RL bot with both buy network and act network
+class BuyActRLplayer(RLPlayer):
+    """
+    An RL bot that also learns the priority of playing action cards.
+    """
+    def __init__(self, value_fn, act_fn, epsilon=0.1, epsilon_act=0.1, include_action=1):
+        RLPlayer.__init__(self, value_fn, epsilon, include_action)
+        self.value_fn = value_fn
+        self.name = "BuyActRLPlayer"
+        self.act_fn = act_fn
+        self.epsilon_act=epsilon_act
+
+    def make_act_decision(self, decision):
+        """
+        Choose an Action to play.
+        use the function out put of act_fn to choos the function to play
+        """
+        choices = decision.choices()
+        # Random exploration with probability epsilon.
+        if (np.random.random() < self.epsilon_act):
+            return np.random.choice(choices)
+        weights = self.act_advantage(decision)
+        return choices[np.argmax(weights)]
+
+    def act_advantage(self, decision):
+        choices = decision.choices()
+        choices_vec = np.zeros((len(choices), len(c.CARD_VECTOR_ORDER)))
+        if not choices:
+            return choices
+        for i, choice in enumerate(choices):
+            choices_vec[i,:] = c.card_to_vector(choice)
+        state = np.tile(np.array(decision.game.to_vector()), (len(choices), 1))
+        X = np.concatenate((state, choices_vec), axis=1)
+        return self.act_fn(X)
+        
+
+

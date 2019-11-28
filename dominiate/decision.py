@@ -1,3 +1,4 @@
+import cards as c
 INF = float('Inf')
 
 class Decision(object):
@@ -18,14 +19,24 @@ class ActDecision(Decision):
     def choices(self):
         return [None] + [card for card in self.state().hand if card.isAction()]
     def choose(self, card):
+        ## record act phase data in player class
+        #self.player().states_act.append(self.game.to_vector())
+        #self.player().actions_act.append(c.card_to_vector(card))
+        #hand_value_before = self.state().hand_value()
         self.game.log.info("%s plays %s" % (self.player().name, card))
         if card is None:
             newgame = self.game.change_current_state(
               delta_actions=-self.state().actions
             )
+            ## no action played, no reward
+            #self.player().rewards_act.append(0)
             return newgame
         else:
             newgame = card.perform_action(self.game.current_play_action(card))
+            # record the increase in hand_value(coins that can be spent) after playing this action card
+            # as the reward for playing this action
+            #hand_value_after = newgame.state().hand_value()
+            #self.player().vp.append(hand_value_after - hand_value_before)
             return newgame
     def __str__(self):
         return "ActDecision (%d actions, %d buys, +%d coins)" %\

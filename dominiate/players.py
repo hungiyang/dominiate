@@ -23,6 +23,10 @@ class Player(object):
 class HumanPlayer(Player):
     def __init__(self, name):
         self.name = name
+        # add this so that code can run 
+        self.states_act = []
+        self.actions_act = []
+        self.rewards_act = []
 
     def make_decision(self, decision):
         if decision.game.simulated:
@@ -87,6 +91,8 @@ class AIPlayer(Player):
         self.record_history = False
         self.reset_history()
     def reset_history(self):
+        #### reward for buy network is more straight forward
+        #### just use the victory points as reward when you buy a card
         # s_t in RL.
         self.states = []
         # a_t
@@ -95,6 +101,17 @@ class AIPlayer(Player):
         self.next_states = []
         # r(s_t, a_t).
         self.rewards = []
+        ###### data recording for action phase training
+        # it is tricky to set up the proper reward for training action playing
+        # I think a good way is to measure the increase in playerstate.hand_value()
+        # the increase in hand_value cannot be seen at make_decision though. 
+        # write the states and rewards in the decision class.
+        # s_t in RL.
+        self.states_act = []
+        # a_t
+        self.actions_act = []
+        # use final vp - current vp as the Q(s,a) 
+        self.vp = []
     def setLogLevel(self, level):
         self.log.setLevel(level)
     def make_decision(self, decision):
@@ -110,6 +127,9 @@ class AIPlayer(Player):
             self.rewards.append(r)
         elif isinstance(decision, ActDecision):
             choice = self.make_act_decision(decision)
+            self.states_act.append(decision.game.to_vector())
+            self.actions_act.append(c.card_to_vector(choice))
+            self.vp.append(decision.state().score())
         elif isinstance(decision, DiscardDecision):
             choice = self.make_discard_decision(decision)
         elif isinstance(decision, TrashDecision):

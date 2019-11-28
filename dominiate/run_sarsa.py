@@ -12,12 +12,167 @@ from dqltrainer import DQLagent
 from dqlvaluetrainer import DQLValueAgent, ARagent
 from sarsa_trainer import SarsaAgent
 
+####### 
+###### train against rlbot itself/smithy bot as opponent, deeper network, incentivize short games
+# RL bot now also decides what actions to play on its own
+# use win reward and no reward per turn
+if 1:
+    dql = SarsaActBuyAgent()
+    p1 = RandomPlayer()
+    p1.record_history = 1
+    p2 = RandomPlayer()
+    p2.record_history = 1
+    data = dql.record_game(500, [p1,p2])
+
+# set the network size to the input vector length
+    dql.length=(data[0].shape[1]+data[1].shape[1])
+# run with a deeper network
+    dql.create_model_5layers()
+    dql.create_act_model()
+    dql.epsilon = 0.05
+    dql.mtrain = 5000
+# one iteration creates roughly 1e4 samples
+# therefore this remembers the data of pass 40 iterations.
+    dql.replaybuffer = 4e5
+    dql.fit_iterations = 10
+    dql.epochs = 10
+    # incentivize short games
+    dql.reward_points_per_turn = 0.0
+    # I think having win reward makes it too noisy
+    dql.win_reward = 20
+
+# first training step
+    dql.add_data(data)
+    dql.do_train()
+
+# use dql vs. random player's game log to train
+    for i in range(1000):
+        if i%100 == 0 and i !=0 :
+            dql.epsilon = 0.05/(i/20) 
+            print('dql epsilon: {:.04f}'.format(dql.epsilon))
+        print('data sample size = {:d}'.format(dql.data[0].shape[0]))
+        dql.do_train()
+        dql.save_model('./model/BuyActRL_v1_iteration_{:03d}'.format(i+1))
+        print('data generation iteration {:d}'.format(i))
+        dql.generate_data_smithy(150)
+        # dql.generate_data(100)
+        dql.generate_data_rl(150)
+        # evaluate against random bot and smithy bot
+        p1 = BuyActRLplayer(lambda x: dql.model.predict(x), lambda x:dql.model_act.predict(x))
+        p1.epsilon=0.0
+        p_smith = SmithyBot()
+        print(compare_bots([p1, RandomPlayer()],10))
+        print(compare_bots([p1, p_smith],10))
+
+
+####### 
+###### train against rlbot itself/smithy bot as opponent, deeper network, incentivize short games
+# RL bot now also decides what actions to play on its own
+if 0:
+    dql = SarsaActBuyAgent()
+    p1 = RandomPlayer()
+    p1.record_history = 1
+    p2 = RandomPlayer()
+    p2.record_history = 1
+    data = dql.record_game(500, [p1,p2])
+
+# set the network size to the input vector length
+    dql.length=(data[0].shape[1]+data[1].shape[1])
+# run with a deeper network
+    dql.create_model_5layers()
+    dql.create_act_model()
+    dql.epsilon = 0.05
+    dql.mtrain = 5000
+# one iteration creates roughly 1e4 samples
+# therefore this remembers the data of pass 40 iterations.
+    dql.replaybuffer = 4e5
+    dql.fit_iterations = 10
+    dql.epochs = 10
+    # incentivize short games
+    dql.reward_points_per_turn = 0.5
+    # I think having win reward makes it too noisy
+    dql.win_reward = 0
+
+# first training step
+    dql.add_data(data)
+    dql.do_train()
+
+# use dql vs. random player's game log to train
+    for i in range(1000):
+        if i%100 == 0 and i !=0 :
+            dql.epsilon = 0.05/(i/20) 
+            print('dql epsilon: {:.04f}'.format(dql.epsilon))
+        print('data sample size = {:d}'.format(dql.data[0].shape[0]))
+        dql.do_train()
+        dql.save_model('./model/BuyActRL_v0_iteration_{:03d}'.format(i+1))
+        print('data generation iteration {:d}'.format(i))
+        dql.generate_data_smithy(150)
+        # dql.generate_data(100)
+        dql.generate_data_rl(150)
+        # evaluate against random bot and smithy bot
+        p1 = BuyActRLplayer(lambda x: dql.model.predict(x), lambda x:dql.model_act.predict(x))
+        p1.epsilon=0.0
+        p_smith = SmithyBot()
+        print(compare_bots([p1, RandomPlayer()],10))
+        print(compare_bots([p1, p_smith],10))
+
+####### add witch into the available cards
+###### train against rlbot itself/random bot/smithy bot as opponent, deeper network, incentivize short games
+# change the act priority calculation
+# add non buy decisions into training data
+if 0:
+    p1 = RandomPlayer()
+    p1.record_history = 1
+    p2 = RandomPlayer()
+    p2.record_history = 1
+    data = record_game(1000, [p1,p2])
+    #data = load_game_data('data/1000with_action')
+
+# set the network size to the input vector length
+    dql = SarsaAgent(length=(data[0].shape[1]+data[1].shape[1]))
+# run with a deeper network
+    dql.create_model_5layers()
+    dql.epsilon = 0.05
+    dql.mtrain = 5000
+# one iteration creates roughly 1e4 samples
+# therefore this remembers the data of pass 20 iterations.
+    dql.replaybuffer = 2e5
+    dql.fit_iterations = 10
+    dql.epochs = 10
+    # incentivize short games
+    dql.reward_points_per_turn = 1
+    # I think having win reward makes it too noisy
+    dql.win_reward = 0
+
+# first training step
+    dql.add_data(data)
+    dql.do_train()
+
+# use dql vs. random player's game log to train
+    for i in range(1000):
+        if i%100 == 0 and i !=0 :
+            dql.epsilon = 0.05/(i/10) 
+            print('dql epsilon: {:.04f}'.format(dql.epsilon))
+        print('data sample size = {:d}'.format(dql.data[0].shape[0]))
+        dql.do_train()
+        dql.save_model('./model/combination_with_witch_v1_iteration_{:03d}'.format(i+1))
+        print('data generation iteration {:d}'.format(i))
+        dql.generate_data_smithy(100)
+        dql.generate_data(100)
+        dql.generate_data_rl(100)
+        # evaluate against random bot and smithy bot
+        p1 = RLPlayer(lambda x: dql.model.predict(x))
+        p1.epsilon=0.0
+        p_smith = SmithyBot()
+        print(compare_bots([p1, RandomPlayer()],10))
+        print(compare_bots([p1, p_smith],10))
+
 
 
 ####### add witch into the available cards
 ###### train against rlbot itself/random bot/smithy bot as opponent, deeper network, incentivize short games
 # TODO: change the order of actions card to play so that witch is prioritized over smithy etc.
-if 1:
+if 0:
     p1 = RandomPlayer()
     p1.record_history = 1
     p2 = RandomPlayer()

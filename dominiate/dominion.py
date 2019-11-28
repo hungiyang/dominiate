@@ -4,11 +4,11 @@ from basic_ai import *
 from combobot import *
 from cards import variable_cards
 from collections import defaultdict
-from rl_agent import RLPlayer
+from rl_agent import RLPlayer, RandomPlayer, BuyActRLplayer
 import pickle
 import random
 import time
-from sarsa_trainer import SarsaAgent
+from sarsa_trainer import SarsaAgent, SarsaActBuyAgent
 #import tensorflow as tf
 
 def compare_bots(bots, num_games=50, order = 0):
@@ -63,16 +63,35 @@ def compare_rl_bots(fn1, fn2, num_games = 50, order = 0):
     print('fight!')
     return compare_bots([p1, p2], num_games, order)
     
-def load_rl_bot(fn, dql=''):
+def load_rl_bot(fn, dql='', pre_witch=0, actbot = 0):
     if dql == '':
-        # has not initialize SarsaAgent's model network, start a new one
-        dql = SarsaAgent()
-        dql.create_model_5layers()
-        data = dql.load_game_data('1game')
-        dql.fit(data)
-        dql.load_model(fn)
-        p1 = RLPlayer(lambda x: dql.model.predict(x))
-        p1.name = fn
+        if actbot:
+            pr = RandomPlayer()
+            pr.record_history=1
+            dql = SarsaActBuyAgent()
+            data = dql.record_game(1, [pr, SmithyBot()],verbose=0)
+            dql.length=(data[0].shape[1]+data[1].shape[1])
+            dql.create_model_5layers()
+            dql.create_act_model()
+            dql.fit(data)
+            dql.fit_act(data)
+            dql.load_model(fn)
+            p1 = BuyActRLplayer(lambda x: dql.model.predict(x), lambda x: dql.model_act.predict(x))
+            p1.name = fn
+        else:
+            # has not initialize SarsaAgent's model network, start a new one
+            if pre_witch:
+                data = load_game_data('1game')
+            else:
+                pr = RandomPlayer()
+                pr.record_history=1
+                data = record_game(1, [pr, SmithyBot()])
+            dql = SarsaAgent(length=(data[0].shape[1]+data[1].shape[1]))
+            dql.create_model_5layers()
+            dql.fit(data)
+            dql.load_model(fn)
+            p1 = RLPlayer(lambda x: dql.model.predict(x))
+            p1.name = fn
     else:
         dql.load_model(fn)
         p1 = RLPlayer(lambda x: dql.model.predict(x))
@@ -93,18 +112,19 @@ def test_game():
     results = game.run()
     return results
 
-def play_rlbot(fname='model_upload/combination_v0_iteration_999'):
+def play_rlbot(fname='model_upload/combination_v0_iteration_999', pre_witch=0, actbot=0):
     # 764 also quite strong
     player1 = HumanPlayer('You')
-    # initialize the network
-    dql = SarsaAgent()
-    dql.create_model_5layers()
-    data = dql.load_game_data('1game')
-    dql.fit(data)
-    dql.load_model(fname)
-    player2 = RLPlayer(lambda x: dql.model.predict(x))
-    player2.epsilon=0
-    player2.setLogLevel(logging.INFO)
+    player2, _ = load_rl_bot(fname,'', pre_witch, actbot)
+    ## initialize the network
+    #dql = SarsaAgent()
+    #dql.create_model_5layers()
+    #data = dql.load_game_data('1game')
+    #dql.fit(data)
+    #dql.load_model(fname)
+    #player2 = RLPlayer(lambda x: dql.model.predict(x))
+    #player2.epsilon=0
+    #player2.setLogLevel(logging.INFO)
     game = Game.setup([player1, player2], variable_cards,False)
     return game.run()
 
@@ -210,13 +230,13 @@ def record_game(n, players, filename='', win_reward=0, verbose=1):
     rewards = np.concatenate(rewards).reshape([-1,1])
     next_states = np.concatenate(next_states)
     aggregated_rewards = np.concatenate(aggregated_rewards).reshape([-1,1])
-    # only save the data vector if a card is bought (action!=0)
-    select = np.sum(actions, 1) > 0
-    states = states[select,:]
-    actions = actions[select,:]
-    rewards = rewards[select,:]
-    next_states = next_states[select,:]
-    aggregated_rewards = aggregated_rewards[select,:]
+    ## only save the data vector if a card is bought (action!=0) --> why did I need this? A bad idea...
+    #select = np.sum(actions, 1) > 0
+    #states = states[select,:]
+    #actions = actions[select,:]
+    #rewards = rewards[select,:]
+    #next_states = next_states[select,:]
+    #aggregated_rewards = aggregated_rewards[select,:]
     if not filename == '':
         with open(filename, 'wb') as f:
             pickle.dump((states, actions, rewards, next_states, aggregated_rewards), f)

@@ -270,7 +270,7 @@ class Game(object):
         return Game(self.playerstates[:], self.card_counts, self.turn,
                     self.simulated)
     # Converts the current game state to a vector presentation, which is:
-    # [cards in supply] + [current player state to_vector] + [other players all cards to_vector] 
+    # [cards in supply] + [current player state to_vector](includes actions, buys, coins etc) + [other players all cards to_vector] 
     def to_vector(self):
         vec = [self.card_counts.get(card, 0) for card in CARD_VECTOR_ORDER]
         vec.extend(self.state().to_vector())
@@ -278,6 +278,7 @@ class Game(object):
             if i != self.player_turn:
                 vec.extend(card_tuple_to_vector(s.all_cards()))
         return vec
+
 
     @staticmethod
     def setup(players, var_cards=(), simulated=True):
