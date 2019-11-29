@@ -554,6 +554,10 @@ class Game(object):
         scores = [(state.player, state.score()) for state in game.playerstates]
         self.log.info("End of game.")
         self.log.info("Scores: %s" % scores)
+        for state in game.playerstates:
+            self.log.info(str(state.player))
+            allhand = state.hand + state.discard + state.tableau + state.drawpile
+            self.log.info(dict(zip(*np.unique(allhand, return_counts=True))))
         return scores
 
     def __repr__(self):

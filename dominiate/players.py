@@ -117,15 +117,18 @@ class AIPlayer(Player):
     def make_decision(self, decision):
         self.log.debug("Decision: %s" % decision)
         if isinstance(decision, BuyDecision):
+            #decision.game.log.info(str(decision)) # print number of coins and buys
             choice = self.make_buy_decision(decision)
             r = 0
             if isinstance(choice, c.Card):
                 r = choice.vp
             self.states.append(decision.game.to_vector())
             self.actions.append(c.card_to_vector(choice))
-            self.next_states.append(decision.choose(choice).to_vector())
+            self.next_states.append(decision.choose(choice, True).to_vector())
             self.rewards.append(r)
         elif isinstance(decision, ActDecision):
+            #decision.game.log.info(str(decision)) # print number of actions and coins
+            decision.game.log.info(decision.choices())
             choice = self.make_act_decision(decision)
             self.states_act.append(decision.game.to_vector())
             self.actions_act.append(c.card_to_vector(choice))

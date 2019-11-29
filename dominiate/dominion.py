@@ -112,10 +112,10 @@ def test_game():
     results = game.run()
     return results
 
-def play_rlbot(fname='model_upload/combination_v0_iteration_999', pre_witch=0, actbot=0):
+def play_rlbot(fname='model_upload/combination_v0_iteration_999', dql='', pre_witch=0, actbot=0):
     # 764 also quite strong
     player1 = HumanPlayer('You')
-    player2, _ = load_rl_bot(fname,'', pre_witch, actbot)
+    player2, dql = load_rl_bot(fname,dql, pre_witch, actbot)
     ## initialize the network
     #dql = SarsaAgent()
     #dql.create_model_5layers()
@@ -126,7 +126,8 @@ def play_rlbot(fname='model_upload/combination_v0_iteration_999', pre_witch=0, a
     #player2.epsilon=0
     #player2.setLogLevel(logging.INFO)
     game = Game.setup([player1, player2], variable_cards,False)
-    return game.run()
+    game.run()
+    return dql
 
 def human_game():
     #player1 = smithyComboBot
