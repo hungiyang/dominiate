@@ -2,7 +2,8 @@ from dominion import *
 from rl_agent import *
 import numpy as np
 import tensorflow as tf
-
+from cards import variable_cards
+from game import Game, PlayerState, VICTORY_CARDS
 
 class SarsaAgent():
     """
@@ -316,6 +317,8 @@ class SarsaActBuyAgent(SarsaAgent):
         self.replaybuffer = 1000000
         self.win_reward = 100
         self.reward_points_per_turn = 1
+        self.VICTORY_CARDS = VICTORY_CARDS
+        self.variable_cards = variable_cards
 
     def create_act_model(self):
         """
@@ -341,7 +344,7 @@ class SarsaActBuyAgent(SarsaAgent):
         return
 
     def run(self, players):
-        game = Game.setup(players, variable_cards)
+        game = SarsaActBuyAgent.setup(players, self.variable_cards, self.VICTORY_CARDS)
         # seems to have a bug that does not terminate game
         # set a limit of 5000 turns 
         k = 0
@@ -353,18 +356,32 @@ class SarsaActBuyAgent(SarsaAgent):
                 game = game.take_turn()
                 k += 1
         scores = [(state.player, state.score()) for state in game.playerstates]
-        winner, _ = max(scores, key=lambda item: item[1])
-        loser, _ = min(scores, key=lambda item: item[1])
+        # This code is buggy... It picks the same guy when there's a tie
+        #winner, _ = max(scores, key=lambda item: item[1])
+        #loser, _ = max(scores, key=lambda item: item[1])
+        # write stupid code instead. No win reward when there's a tie
+        if scores[0][1] > scores[1][1]:
+            winner = scores[0][0]
+            loser = scores[1][0]
+            win_reward_multiplier = 1
+        elif scores[0][1] == scores[1][1]:
+            win_reward_multiplier = 0
+            winner = scores[0][0]
+            loser = scores[1][0]
+        else:
+            winner = scores[1][0]
+            loser = scores[0][0]
+            win_reward_multiplier = 1
         # check if list is empty before adding reward
-        if winner.rewards: winner.rewards[-1] += self.win_reward
-        if loser.rewards: loser.rewards[-1] += -self.win_reward
-        if winner.vp: winner.vp.append(self.win_reward)
-        if loser.vp: loser.vp.append(self.win_reward)
+        if winner.rewards: winner.rewards[-1] += self.win_reward*win_reward_multiplier
+        if loser.rewards: loser.rewards[-1] += -self.win_reward*win_reward_multiplier
+        if winner.vp: winner.vp.append(winner.vp[-1] + self.win_reward*win_reward_multiplier)
+        if loser.vp: loser.vp.append(loser.vp[-1] - self.win_reward*win_reward_multiplier)
         # add a reward that incentivize points per round
         for p, s in scores:
             p.rewards[-1] += 100*s/k*self.reward_points_per_turn
             # add a reward of points per turn to act_reward also
-            if p.vp: p.vp[-1] += 100*s/k*self.reward_points_per_turn
+            if p.vp != []: p.vp[-1] += 100*s/k*self.reward_points_per_turn
         return scores
 
     def scores_to_data(self, scores):
@@ -595,6 +612,49 @@ class SarsaActBuyAgent(SarsaAgent):
             print('truncate {:d} samples'.format(int(self.data[0].shape[0] - self.replaybuffer)))
             self.data = tuple([d_this[-int(self.replaybuffer):,:] for d_this in self.data])
         return
+
+    def compare_bots(self, bots, num_games=50):
+        start_time = time.time()
+        wins = {bot: 0 for bot in bots}
+        final_scores = {bot:[] for bot in bots}
+        for i in range(num_games):
+            random.shuffle(bots)
+            game = SarsaActBuyAgent.setup(bots, self.variable_cards, self.VICTORY_CARDS)
+            results = game.run()
+            maxscore = 0
+            for bot, score in results:
+                final_scores[bot].append(score)
+                if score > maxscore: maxscore = score
+            for bot, score in results:
+                if score == maxscore:
+                    wins[bot] += 1
+                    break
+        for bot in final_scores.keys():
+            final_scores[bot] = np.mean(final_scores[bot])
+        print("Took %.3f seconds" % (time.time() - start_time))
+        return wins, final_scores
+
+    @staticmethod
+    def setup(players, var_cards=(), VICTORY_CARDS=VICTORY_CARDS, simulated=True):
+        """Set up the game.
+        Put this here because I want to try out different numbers of province. I'm hoping that in a longer game, 
+        the AI can learn to play engine.
+        """
+        counts = {
+            estate: VICTORY_CARDS[len(players)],
+            duchy: VICTORY_CARDS[len(players)],
+            province: VICTORY_CARDS[len(players)],
+            curse: 10*(len(players)-1),
+            copper: 60 - 7*len(players),
+            silver: 40,
+            gold: 30
+        }
+        for card in var_cards:
+            counts[card] = 10
+
+        playerstates = [PlayerState.initial_state(p) for p in players]
+        random.shuffle(playerstates)
+        return Game(playerstates, counts, turn=0, simulated=simulated)
 
 ######## Below are scripts to evaluate model evolution
 

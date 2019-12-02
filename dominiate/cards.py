@@ -102,14 +102,6 @@ silver = Card('Silver', 3, treasure=2)
 gold   = Card('Gold', 6, treasure=3)
 
 # simple actions
-"""
-village = Card('Village(1 action, 2 card)', 3, actions=2, cards=1)
-woodcutter = Card('Woodcutter', 3, coins=2, buys=1)
-smithy = Card('Smithy(3 card)', 4, cards=3)
-festival = Card('Festival(2 action, 2 coins, 1 buy)', 5, coins=2, actions=2, buys=1)
-market = Card('Market(1 coin, 1 card, 1 action, 1 buy)', 5, coins=1, cards=1, actions=1, buys=1)
-laboratory = Card('Laboratory(1 action, 2 card)', 5, cards=2, actions=1)
-"""
 village = Card('Village', 3, actions=2, cards=1)
 woodcutter = Card('Woodcutter', 3, coins=2, buys=1)
 smithy = Card('Smithy', 4, cards=3)
@@ -146,16 +138,6 @@ def militia_attack(game):
 
 def witch_attack(game):
     return game.curse_others()
-"""
-chapel = Card('Chapel(trash x)', 2, effect=chapel_action)
-cellar = Card('Cellar(1 action, discard x draw x)', 2, actions=1, effect=cellar_action)
-warehouse = Card('Warehouse(1 action, draw 3 discard 3)', 3, cards=3, actions=1, effect=warehouse_action)
-council_room = Card('Council Room(1 buy, 4 cards, others 1 card)', 5, cards=4, buys=1,
-                    effect=council_room_action)
-militia = Card('Militia(2 coin, others discard 2)', 4, coins=2, effect=militia_attack, isAttack=True)
-moat = Card('Moat(2 card, defense)', 2, cards=2, isDefense=True)
-witch = Card('Witch(2 card, curse others)', 5, cards=2, effect=witch_attack, isAttack=True)
-"""
 chapel = Card('Chapel', 2, effect=chapel_action)
 cellar = Card('Cellar', 2, actions=1, effect=cellar_action)
 warehouse = Card('Warehouse', 3, cards=3, actions=1, effect=warehouse_action)
