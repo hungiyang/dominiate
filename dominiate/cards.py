@@ -187,3 +187,22 @@ def card_to_vector(card):
     if card:
         vec[CARD_TO_INDEX[card]] = 1
     return vec
+
+def cardlist_to_vector(cardlist):
+    vec = np.zeros(len(CARD_VECTOR_ORDER))
+    for card in cardlist:
+        if card:  
+            vec[CARD_TO_INDEX[card]] = 1
+    return vec
+
+def vector_to_cardlist(vec):
+    """
+    inverse of the cardlist_to_vector function.
+    will include None in the cardlist
+    """
+    cardlist = [None]
+    for i, inlist in enumerate(vec):
+        if inlist:
+            cardlist.append(CARD_VECTOR_ORDER[i])
+    
+    return cardlist
