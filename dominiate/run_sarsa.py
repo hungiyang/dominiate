@@ -28,12 +28,12 @@ if 1:
 # a very dumb way to initiate the network weights
     dql.create_model(sa, r)
     dql.epsilon = 0.05
-    dql.mtrain = 2000
+    dql.mtrain = 5000
 # one iteration creates roughly 1e4 samples
 # therefore this remembers the data of pass 40 iterations.
     dql.replaybuffer = int(4e5)
     dql.target_iterations=1
-    dql.predict_iterations=5
+    dql.predict_iterations=20
     dql.epochs = 50
     # incentivize short games
     dql.reward_points_per_turn = 0.0
