@@ -8,16 +8,64 @@ from rl_agent import *
 import numpy as np
 import pickle as pk
 import tensorflow as tf
-from dqltrainer import DQLagent
+from dqltrainer import DQLagent, DQLSalsaAgent
 from dqlvaluetrainer import DQLValueAgent, ARagent
 from sarsa_trainer import SarsaAgent
+
+####### 
+###### train against rlbot itself/smithy bot as opponent, deeper network
+# New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
+if 1:
+    dql = DQLSalsaAgent()
+    p1 = RandomPlayer()
+    p1.record_history = 1
+    p2 = RandomPlayer()
+    p2.record_history = 1
+    dbuy, _ = dql.record_game(1, [p1,p2])
+    sa = np.array([np.concatenate([s,a]) for s,a,r,_,_,_ in dbuy])
+    r = np.array([r for s,a,r,_,_,_ in dbuy])
+
+# a very dumb way to initiate the network weights
+    dql.create_model(sa, r)
+    dql.epsilon = 0.05
+    dql.mtrain = 1000
+# one iteration creates roughly 1e4 samples
+# therefore this remembers the data of pass 40 iterations.
+    dql.replaybuffer = 4e5
+    dql.target_iterations=1
+    dql.predict_iterations=10
+    dql.epochs = 10
+    # incentivize short games
+    dql.reward_points_per_turn = 0.0
+    # I think having win reward makes it too noisy
+    dql.win_reward = 0
+
+
+# use dql vs. random player's game log to train
+    for i in range(1000):
+        dql.epsilon = 0.05/((i+1)/20) 
+        print('dql epsilon: {:.04f}'.format(dql.epsilon))
+        print('data generation iteration {:d}'.format(i))
+        dql.generate_data_smithy(100)
+        dql.generate_data_rl(100)
+        dql.generate_data(100)
+        print('data sample size = {:d}'.format(dql.data[0].shape[0]))
+        dql.do_target_iteration()
+        dql.save_model('./model/DQLSarsa_buy_only_v0_iteration_{:03d}'.format(i+1))
+        # evaluate against random bot and smithy bot
+        p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+        p1.epsilon=0.0
+        p_smith = SmithyBot()
+        print(compare_bots([p1, RandomPlayer()],10))
+        print(compare_bots([p1, p_smith],10))
+
 
 ####### 
 ###### train against rlbot itself/smithy bot as opponent, deeper network
 # RL bot now also decides what actions to play on its own
 # use no win reward and no reward per turn
 # The previous act network(before v2) have bug and does not work.
-if 1:
+if 0:
     dql = SarsaActBuyAgent()
     p1 = RandomPlayer()
     p1.record_history = 1

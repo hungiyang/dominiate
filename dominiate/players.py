@@ -97,8 +97,8 @@ class AIPlayer(Player):
         self.states = []
         # a_t
         self.actions = []
-        # s_{t+1}
-        self.next_states = []
+        # possible action at each stage
+        self.choices = []
         # r(s_t, a_t).
         self.rewards = []
         ###### data recording for action phase training
@@ -110,6 +110,8 @@ class AIPlayer(Player):
         self.states_act = []
         # a_t
         self.actions_act = []
+        # possible action choices
+        self.choices_act = []
         # use final vp - current vp as the Q(s,a) 
         self.vp = []
     def setLogLevel(self, level):
@@ -124,7 +126,8 @@ class AIPlayer(Player):
                 r = choice.vp
             self.states.append(decision.game.to_vector())
             self.actions.append(c.card_to_vector(choice))
-            self.next_states.append(decision.choose(choice, True).to_vector())
+            #self.next_states.append(decision.choose(choice, True).to_vector())
+            self.choices.append(c.cardlist_to_vector(decision.choices()))
             self.rewards.append(r)
         elif isinstance(decision, ActDecision):
             #decision.game.log.info(str(decision)) # print number of actions and coins
@@ -132,6 +135,7 @@ class AIPlayer(Player):
             choice = self.make_act_decision(decision)
             self.states_act.append(decision.game.to_vector())
             self.actions_act.append(c.card_to_vector(choice))
+            self.choices_act.append(c.cardlist_to_vector(decision.choices()))
             self.vp.append(decision.state().score())
         elif isinstance(decision, DiscardDecision):
             choice = self.make_discard_decision(decision)
