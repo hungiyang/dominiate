@@ -13,10 +13,329 @@ from dqlvaluetrainer import DQLValueAgent, ARagent
 from sarsa_trainer import SarsaAgent
 
 
+## Try gamma=0.95, mtrain=5000, 10 iterations.
+## Train against only RL itself and Smithy
+if 1:
+  # generate one game of Smithy vs. Smithy
+  dql = DQLSalsaAgent()
+  p1 = SmithyBot()
+  p1.record_history = 1
+  p2 = SmithyBot()
+  p2.record_history = 0
+  dbuy, _ = dql.record_game(1, [p1,p2])
+  sa = np.array([np.concatenate([s,a]) for s,a,r,_,_,_ in dbuy])
+  r = np.array([r for s,a,r,_,_,_ in dbuy])
+  
+  dql.epsilon = 0.05
+  dql.mtrain = 5000
+  # one iteration creates roughly 1e4 samples
+  # therefore this remembers the data of pass 40 iterations.
+  dql.replaybuffer = int(4e5)
+  dql.target_iterations=1
+  dql.predict_iterations=20
+  dql.epochs = 10
+  dql.gamma = 0.99
+  # incentivize short games
+  dql.reward_points_per_turn = 0.0
+  # I think having win reward makes it too noisy
+  dql.win_reward = 0
+  # print the settings
+  print('mtrain {:d}, replaybuffer {:d}, predict iter {:d}, epochs {:d}, gamma {:.02f}'.\
+      format(dql.mtrain, dql.replaybuffer, dql.predict_iterations, dql.epochs, dql.gamma))
+  # a very dumb way to initiate the network weights
+  dql.create_model(sa, r)
+  # start training iterations. 
+  for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    dql.generate_data_smithy(150)
+    dql.generate_data_rl(150)
+    # dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data.shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v13_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
+    # print output of Q(s,a) estimates for the first SmithyBot game
+    print('Q(s,a) estimates of a SmithyBot game')
+    print(dql.model_predict.predict(sa).T)
+
+
+## Try gamma=0.95, mtrain=5000, 10 iterations.
+## Train against only RL itself and Smithy
+if 0:
+  # generate one game of Smithy vs. Smithy
+  dql = DQLSalsaAgent()
+  p1 = SmithyBot()
+  p1.record_history = 1
+  p2 = SmithyBot()
+  p2.record_history = 0
+  dbuy, _ = dql.record_game(1, [p1,p2])
+  sa = np.array([np.concatenate([s,a]) for s,a,r,_,_,_ in dbuy])
+  r = np.array([r for s,a,r,_,_,_ in dbuy])
+  
+  dql.epsilon = 0.05
+  dql.mtrain = 5000
+  # one iteration creates roughly 1e4 samples
+  # therefore this remembers the data of pass 40 iterations.
+  dql.replaybuffer = int(4e5)
+  dql.target_iterations=1
+  dql.predict_iterations=10
+  dql.epochs = 10
+  dql.gamma = 0.95
+  # incentivize short games
+  dql.reward_points_per_turn = 0.0
+  # I think having win reward makes it too noisy
+  dql.win_reward = 0
+  # print the settings
+  print('mtrain {:d}, replaybuffer {:d}, predict iter {:d}, epochs {:d}, gamma {:.02f}'.\
+      format(dql.mtrain, dql.replaybuffer, dql.predict_iterations, dql.epochs, dql.gamma))
+  # a very dumb way to initiate the network weights
+  dql.create_model(sa, r)
+  # start training iterations. 
+  for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    dql.generate_data_smithy(150)
+    dql.generate_data_rl(150)
+    # dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data.shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v12_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
+    # print output of Q(s,a) estimates for the first SmithyBot game
+    print('Q(s,a) estimates of a SmithyBot game')
+    print(dql.model_predict.predict(sa).T)
+
+## Try gamma=0.96, mtrain=5000, 10 iterations.
+if 0:
+  # generate one game of Smithy vs. Smithy
+  dql = DQLSalsaAgent()
+  p1 = SmithyBot()
+  p1.record_history = 1
+  p2 = SmithyBot()
+  p2.record_history = 0
+  dbuy, _ = dql.record_game(1, [p1,p2])
+  sa = np.array([np.concatenate([s,a]) for s,a,r,_,_,_ in dbuy])
+  r = np.array([r for s,a,r,_,_,_ in dbuy])
+  
+  dql.epsilon = 0.05
+  dql.mtrain = 5000
+  # one iteration creates roughly 1e4 samples
+  # therefore this remembers the data of pass 40 iterations.
+  dql.replaybuffer = int(4e5)
+  dql.target_iterations=1
+  dql.predict_iterations=10
+  dql.epochs = 10
+  dql.gamma = 0.96
+  # incentivize short games
+  dql.reward_points_per_turn = 0.0
+  # I think having win reward makes it too noisy
+  dql.win_reward = 0
+  # print the settings
+  print('mtrain {:d}, replaybuffer {:d}, predict iter {:d}, epochs {:d}, gamma {:.02f}'.\
+      format(dql.mtrain, dql.replaybuffer, dql.predict_iterations, dql.epochs, dql.gamma))
+  # a very dumb way to initiate the network weights
+  dql.create_model(sa, r)
+  # start training iterations. 
+  for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    dql.generate_data_smithy(100)
+    dql.generate_data_rl(100)
+    dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data.shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v11_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
+    # print output of Q(s,a) estimates for the first SmithyBot game
+    print('Q(s,a) estimates of a SmithyBot game')
+    print(dql.model_predict.predict(sa).T)
+
+
+## Try gamma=0.97, mtrain=5000, 10 iterations.
+if 0:
+  # generate one game of Smithy vs. Smithy
+  dql = DQLSalsaAgent()
+  p1 = SmithyBot()
+  p1.record_history = 1
+  p2 = SmithyBot()
+  p2.record_history = 0
+  dbuy, _ = dql.record_game(1, [p1,p2])
+  sa = np.array([np.concatenate([s,a]) for s,a,r,_,_,_ in dbuy])
+  r = np.array([r for s,a,r,_,_,_ in dbuy])
+  
+  dql.epsilon = 0.05
+  dql.mtrain = 5000
+  # one iteration creates roughly 1e4 samples
+  # therefore this remembers the data of pass 40 iterations.
+  dql.replaybuffer = int(4e5)
+  dql.target_iterations=1
+  dql.predict_iterations=10
+  dql.epochs = 10
+  dql.gamma = 0.97
+  # incentivize short games
+  dql.reward_points_per_turn = 0.0
+  # I think having win reward makes it too noisy
+  dql.win_reward = 0
+  # print the settings
+  print('mtrain {:d}, replaybuffer {:d}, predict iter {:d}, epochs {:d}, gamma {:.02f}'.\
+      format(dql.mtrain, dql.replaybuffer, dql.predict_iterations, dql.epochs, dql.gamma))
+  # a very dumb way to initiate the network weights
+  dql.create_model(sa, r)
+# start training iterations. 
+  for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    dql.generate_data_smithy(100)
+    dql.generate_data_rl(100)
+    dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data.shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v10_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
+    # print output of Q(s,a) estimates for the first SmithyBot game
+    print('Q(s,a) estimates of a SmithyBot game')
+    print(dql.model_predict.predict(sa).T)
+
+
+## v5: gamma=0.95, 10 iteration does reasonably well and is stable
+## v6: gamma=0.99, 40 iteration. At one iteration beats SmithyBot, but not stable at the end
+## v8: gamma=0.99, 10 iterations. Does not beat SmithyBot and diverges
+## Try gamma=0.98, mtrain=5000, 10 iterations.
+if 0:
+  # generate one game of Smithy vs. Smithy
+  dql = DQLSalsaAgent()
+  p1 = SmithyBot()
+  p1.record_history = 1
+  p2 = SmithyBot()
+  p2.record_history = 0
+  dbuy, _ = dql.record_game(1, [p1,p2])
+  sa = np.array([np.concatenate([s,a]) for s,a,r,_,_,_ in dbuy])
+  r = np.array([r for s,a,r,_,_,_ in dbuy])
+  
+  dql.epsilon = 0.05
+  dql.mtrain = 5000
+  # one iteration creates roughly 1e4 samples
+  # therefore this remembers the data of pass 40 iterations.
+  dql.replaybuffer = int(4e5)
+  dql.target_iterations=1
+  dql.predict_iterations=10
+  dql.epochs = 10
+  dql.gamma = 0.98
+  # incentivize short games
+  dql.reward_points_per_turn = 0.0
+  # I think having win reward makes it too noisy
+  dql.win_reward = 0
+  # print the settings
+  print('mtrain {:d}, replaybuffer {:d}, predict iter {:d}, epochs {:d}, gamma {:.02f}'.\
+      format(dql.mtrain, dql.replaybuffer, dql.predict_iterations, dql.epochs, dql.gamma))
+  # a very dumb way to initiate the network weights
+  dql.create_model(sa, r)
+  # start training iterations. 
+  for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    dql.generate_data_smithy(100)
+    dql.generate_data_rl(100)
+    dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data.shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v9_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
+    # print output of Q(s,a) estimates for the first SmithyBot game
+    print('Q(s,a) estimates of a SmithyBot game')
+    print(dql.model_predict.predict(sa).T)
+
+
+
+# Train against rlbot itself/smithy bot as opponent, deeper network
+# New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
+# increase gamma to 0.99, with the other options the same as v5.
+# Since v5 is doing pretty well
+if 0:
+  # generate one game of Smithy vs. Smithy
+  dql = DQLSalsaAgent()
+  p1 = SmithyBot()
+  p1.record_history = 1
+  p2 = SmithyBot()
+  p2.record_history = 0
+  dbuy, _ = dql.record_game(1, [p1,p2])
+  sa = np.array([np.concatenate([s,a]) for s,a,r,_,_,_ in dbuy])
+  r = np.array([r for s,a,r,_,_,_ in dbuy])
+  
+  dql.epsilon = 0.05
+  dql.mtrain = 1000
+  # one iteration creates roughly 1e4 samples
+  # therefore this remembers the data of pass 40 iterations.
+  dql.replaybuffer = int(4e5)
+  dql.target_iterations=1
+  dql.predict_iterations=10
+  dql.epochs = 10
+  dql.gamma = 0.99
+  # incentivize short games
+  dql.reward_points_per_turn = 0.0
+  # I think having win reward makes it too noisy
+  dql.win_reward = 0
+  # print the settings
+  print('mtrain {:d}, replaybuffer {:d}, predict iter {:d}, epochs {:d}, gamma {:.02f}'.\
+      format(dql.mtrain, dql.replaybuffer, dql.predict_iterations, dql.epochs, dql.gamma))
+  # a very dumb way to initiate the network weights
+  dql.create_model(sa, r)
+  # start training iterations. 
+  for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    dql.generate_data_smithy(100)
+    dql.generate_data_rl(100)
+    dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data.shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v8_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
+    # print output of Q(s,a) estimates for the first SmithyBot game
+    print('Q(s,a) estimates of a SmithyBot game')
+    print(dql.model_predict.predict(sa).T)
+
 # Train against rlbot itself/smithy bot as opponent, deeper network
 # New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
 # increase gamma to 1.0
-if 1:
+if 0:
   # generate one game of Smithy vs. Smithy
   dql = DQLSalsaAgent()
   p1 = SmithyBot()
@@ -45,26 +364,26 @@ if 1:
       format(dql.mtrain, dql.replaybuffer, dql.predict_iterations, dql.epochs, dql.gamma))
   # a very dumb way to initiate the network weights
   dql.create_model(sa, r)
-# start training iterations. 
-for i in range(1000):
-  print('data generation iteration {:d}'.format(i))
-  dql.epsilon = 0.05/((i+1)/20) 
-  print('dql epsilon: {:.04f}'.format(dql.epsilon))
-  dql.generate_data_smithy(100)
-  dql.generate_data_rl(100)
-  dql.generate_data(100)
-  print('data sample size = {:d}'.format(dql.data.shape[0]))
-  dql.do_target_iteration()
-  dql.save_model('./model/DQLSarsa_buy_only_v7_iteration_{:03d}'.format(i+1))
-  # evaluate against random bot and smithy bot
-  p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
-  p1.epsilon=0.0
-  p_smith = SmithyBot()
-  print(compare_bots([p1, RandomPlayer()],10))
-  print(compare_bots([p1, p_smith],10))
-  # print output of Q(s,a) estimates for the first SmithyBot game
-  print('Q(s,a) estimates of a SmithyBot game')
-  print(dql.model_predict.predict(sa).T)
+  # start training iterations. 
+  for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    dql.generate_data_smithy(100)
+    dql.generate_data_rl(100)
+    dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data.shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v7_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
+    # print output of Q(s,a) estimates for the first SmithyBot game
+    print('Q(s,a) estimates of a SmithyBot game')
+    print(dql.model_predict.predict(sa).T)
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
 # New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
@@ -98,26 +417,26 @@ if 0:
       format(dql.mtrain, dql.replaybuffer, dql.predict_iterations, dql.epochs, dql.gamma))
   # a very dumb way to initiate the network weights
   dql.create_model(sa, r)
-# start training iterations. 
-for i in range(1000):
-  print('data generation iteration {:d}'.format(i))
-  dql.epsilon = 0.05/((i+1)/20) 
-  print('dql epsilon: {:.04f}'.format(dql.epsilon))
-  dql.generate_data_smithy(100)
-  dql.generate_data_rl(100)
-  dql.generate_data(100)
-  print('data sample size = {:d}'.format(dql.data.shape[0]))
-  dql.do_target_iteration()
-  dql.save_model('./model/DQLSarsa_buy_only_v6_iteration_{:03d}'.format(i+1))
-  # evaluate against random bot and smithy bot
-  p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
-  p1.epsilon=0.0
-  p_smith = SmithyBot()
-  print(compare_bots([p1, RandomPlayer()],10))
-  print(compare_bots([p1, p_smith],10))
-  # print output of Q(s,a) estimates for the first SmithyBot game
-  print('Q(s,a) estimates of a SmithyBot game')
-  print(dql.model_predict.predict(sa).T)
+  # start training iterations. 
+  for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    dql.generate_data_smithy(100)
+    dql.generate_data_rl(100)
+    dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data.shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v6_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
+    # print output of Q(s,a) estimates for the first SmithyBot game
+    print('Q(s,a) estimates of a SmithyBot game')
+    print(dql.model_predict.predict(sa).T)
 
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
@@ -152,26 +471,26 @@ if 0:
       format(dql.mtrain, dql.replaybuffer, dql.predict_iterations, dql.epochs, dql.gamma))
   # a very dumb way to initiate the network weights
   dql.create_model(sa, r)
-# start training iterations. 
-for i in range(1000):
-  print('data generation iteration {:d}'.format(i))
-  dql.epsilon = 0.05/((i+1)/20) 
-  print('dql epsilon: {:.04f}'.format(dql.epsilon))
-  dql.generate_data_smithy(100)
-  dql.generate_data_rl(100)
-  dql.generate_data(100)
-  print('data sample size = {:d}'.format(dql.data.shape[0]))
-  dql.do_target_iteration()
-  dql.save_model('./model/DQLSarsa_buy_only_v5_iteration_{:03d}'.format(i+1))
-  # evaluate against random bot and smithy bot
-  p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
-  p1.epsilon=0.0
-  p_smith = SmithyBot()
-  print(compare_bots([p1, RandomPlayer()],10))
-  print(compare_bots([p1, p_smith],10))
-  # print output of Q(s,a) estimates for the first SmithyBot game
-  print('Q(s,a) estimates of a SmithyBot game')
-  print(dql.model_predict.predict(sa).T)
+  # start training iterations. 
+  for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    dql.generate_data_smithy(100)
+    dql.generate_data_rl(100)
+    dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data.shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v5_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
+    # print output of Q(s,a) estimates for the first SmithyBot game
+    print('Q(s,a) estimates of a SmithyBot game')
+    print(dql.model_predict.predict(sa).T)
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
 # New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
@@ -203,26 +522,26 @@ if 0:
   print('mtrain {:d}, replaybuffer {:d}, predict iter {:d}, epochs {:d}, gamma {:.02f}'.format(dql.mtrain, dql.replaybuffer, dql.predict_iterations, dql.epochs, dql.gamma))
   # a very dumb way to initiate the network weights
   dql.create_model(sa, r)
-# use dql vs. random player's game log to train
-for i in range(1000):
-  print('data generation iteration {:d}'.format(i))
-  dql.epsilon = 0.05/((i+1)/20) 
-  print('dql epsilon: {:.04f}'.format(dql.epsilon))
-  dql.generate_data_smithy(100)
-  dql.generate_data_rl(100)
-  dql.generate_data(100)
-  print('data sample size = {:d}'.format(dql.data.shape[0]))
-  dql.do_target_iteration()
-  dql.save_model('./model/DQLSarsa_buy_only_v4_iteration_{:03d}'.format(i+1))
-  # evaluate against random bot and smithy bot
-  p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
-  p1.epsilon=0.0
-  p_smith = SmithyBot()
-  print(compare_bots([p1, RandomPlayer()],10))
-  print(compare_bots([p1, p_smith],10))
-  # print output of Q(s,a) estimates for the first SmithyBot game
-  print('Q(s,a) estimates of a SmithyBot game')
-  print(dql.model_predict.predict(sa).T)
+  # use dql vs. random player's game log to train
+  for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    dql.generate_data_smithy(100)
+    dql.generate_data_rl(100)
+    dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data.shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v4_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
+    # print output of Q(s,a) estimates for the first SmithyBot game
+    print('Q(s,a) estimates of a SmithyBot game')
+    print(dql.model_predict.predict(sa).T)
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
 # New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
@@ -255,26 +574,26 @@ if 0:
   # a very dumb way to initiate the network weights
   dql.create_model(sa, r)
 
-# use dql vs. random player's game log to train
-for i in range(1000):
-  print('data generation iteration {:d}'.format(i))
-  dql.epsilon = 0.05/((i+1)/20) 
-  print('dql epsilon: {:.04f}'.format(dql.epsilon))
-  dql.generate_data_smithy(100)
-  dql.generate_data_rl(100)
-  dql.generate_data(100)
-  print('data sample size = {:d}'.format(dql.data.shape[0]))
-  dql.do_target_iteration()
-  dql.save_model('./model/DQLSarsa_buy_only_v3_iteration_{:03d}'.format(i+1))
-  # evaluate against random bot and smithy bot
-  p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
-  p1.epsilon=0.0
-  p_smith = SmithyBot()
-  print(compare_bots([p1, RandomPlayer()],10))
-  print(compare_bots([p1, p_smith],10))
-  # print output of Q(s,a) estimates for the first SmithyBot game
-  print('Q(s,a) estimates of a SmithyBot game')
-  print(dql.model_predict.predict(sa).T)
+  # use dql vs. random player's game log to train
+  for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    dql.generate_data_smithy(100)
+    dql.generate_data_rl(100)
+    dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data.shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v3_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
+    # print output of Q(s,a) estimates for the first SmithyBot game
+    print('Q(s,a) estimates of a SmithyBot game')
+    print(dql.model_predict.predict(sa).T)
 
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
@@ -307,26 +626,26 @@ if 0:
   print('mtrain {:d}, replaybuffer {:d}, predict iter {:d}, epochs {:d}, gamma {:.02f}'.\
         format(dql.mtrain, dql.replaybuffer, dql.predict_iterations, dql.epochs, dql.gamma))
 
-# use dql vs. random player's game log to train
-for i in range(1000):
-  print('data generation iteration {:d}'.format(i))
-  dql.epsilon = 0.05/((i+1)/20) 
-  print('dql epsilon: {:.04f}'.format(dql.epsilon))
-  dql.generate_data_smithy(100)
-  dql.generate_data_rl(100)
-  dql.generate_data(100)
-  print('data sample size = {:d}'.format(dql.data.shape[0]))
-  dql.do_target_iteration()
-  dql.save_model('./model/DQLSarsa_buy_only_v2_iteration_{:03d}'.format(i+1))
-  # evaluate against random bot and smithy bot
-  p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
-  p1.epsilon=0.0
-  p_smith = SmithyBot()
-  print(compare_bots([p1, RandomPlayer()],10))
-  print(compare_bots([p1, p_smith],10))
-  # print output of Q(s,a) estimates for the first SmithyBot game
-  print('Q(s,a) estimates of a SmithyBot game')
-  print(dql.model_predict.predict(sa))
+  # use dql vs. random player's game log to train
+  for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    dql.generate_data_smithy(100)
+    dql.generate_data_rl(100)
+    dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data.shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v2_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
+    # print output of Q(s,a) estimates for the first SmithyBot game
+    print('Q(s,a) estimates of a SmithyBot game')
+    print(dql.model_predict.predict(sa))
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
 # New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
@@ -360,26 +679,26 @@ if 0:
         format(dql.mtrain, dql.replaybuffer, dql.predict_iterations, dql.epochs, dql.gamma))
 
 
-# use dql vs. random player's game log to train
-for i in range(1000):
-  print('data generation iteration {:d}'.format(i))
-  dql.epsilon = 0.05/((i+1)/20) 
-  print('dql epsilon: {:.04f}'.format(dql.epsilon))
-  dql.generate_data_smithy(100)
-  dql.generate_data_rl(100)
-  dql.generate_data(100)
-  print('data sample size = {:d}'.format(dql.data.shape[0]))
-  dql.do_target_iteration()
-  dql.save_model('./model/DQLSarsa_buy_only_v1_iteration_{:03d}'.format(i+1))
-  # evaluate against random bot and smithy bot
-  p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
-  p1.epsilon=0.0
-  p_smith = SmithyBot()
-  print(compare_bots([p1, RandomPlayer()],10))
-  print(compare_bots([p1, p_smith],10))
-  # print output of Q(s,a) estimates for the first SmithyBot game
-  print('Q(s,a) estimates of a SmithyBot game')
-  print(dql.model_predict.predict(sa))
+  # use dql vs. random player's game log to train
+  for i in range(1000):
+    print('data generation iteration {:d}'.format(i))
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    dql.generate_data_smithy(100)
+    dql.generate_data_rl(100)
+    dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data.shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v1_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
+    # print output of Q(s,a) estimates for the first SmithyBot game
+    print('Q(s,a) estimates of a SmithyBot game')
+    print(dql.model_predict.predict(sa))
 
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
@@ -410,70 +729,70 @@ if 0:
   # I think having win reward makes it too noisy
   dql.win_reward = 0
 
-# use dql vs. random player's game log to train
-for i in range(1000):
-  dql.epsilon = 0.05/((i+1)/20) 
-  print('dql epsilon: {:.04f}'.format(dql.epsilon))
-  print('data generation iteration {:d}'.format(i))
-  dql.generate_data_smithy(100)
-  dql.generate_data_rl(100)
-  dql.generate_data(100)
-  print('data sample size = {:d}'.format(dql.data[0].shape[0]))
-  dql.do_target_iteration()
-  dql.save_model('./model/DQLSarsa_buy_only_v0_iteration_{:03d}'.format(i+1))
-  # evaluate against random bot and smithy bot
-  p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
-  p1.epsilon=0.0
-  p_smith = SmithyBot()
-  print(compare_bots([p1, RandomPlayer()],10))
-  print(compare_bots([p1, p_smith],10))
+  # use dql vs. random player's game log to train
+  for i in range(1000):
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    print('data generation iteration {:d}'.format(i))
+    dql.generate_data_smithy(100)
+    dql.generate_data_rl(100)
+    dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data[0].shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v0_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
 
 
 ###### train against rlbot itself/smithy bot as opponent, deeper network
 # New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
 if 0:
-    dql = DQLSalsaAgent()
-    p1 = RandomPlayer()
-    p1.record_history = 1
-    p2 = RandomPlayer()
-    p2.record_history = 1
-    dbuy, _ = dql.record_game(1, [p1,p2])
-    sa = np.array([np.concatenate([s,a]) for s,a,r,_,_,_ in dbuy])
-    r = np.array([r for s,a,r,_,_,_ in dbuy])
+  dql = DQLSalsaAgent()
+  p1 = RandomPlayer()
+  p1.record_history = 1
+  p2 = RandomPlayer()
+  p2.record_history = 1
+  dbuy, _ = dql.record_game(1, [p1,p2])
+  sa = np.array([np.concatenate([s,a]) for s,a,r,_,_,_ in dbuy])
+  r = np.array([r for s,a,r,_,_,_ in dbuy])
 
 # a very dumb way to initiate the network weights
-    dql.create_model(sa, r)
-    dql.epsilon = 0.05
-    dql.mtrain = 1000
+  dql.create_model(sa, r)
+  dql.epsilon = 0.05
+  dql.mtrain = 1000
 # one iteration creates roughly 1e4 samples
 # therefore this remembers the data of pass 40 iterations.
-    dql.replaybuffer = 4e5
-    dql.target_iterations=1
-    dql.predict_iterations=10
-    dql.epochs = 10
-    # incentivize short games
-    dql.reward_points_per_turn = 0.0
-    # I think having win reward makes it too noisy
-    dql.win_reward = 0
+  dql.replaybuffer = 4e5
+  dql.target_iterations=1
+  dql.predict_iterations=10
+  dql.epochs = 10
+  # incentivize short games
+  dql.reward_points_per_turn = 0.0
+  # I think having win reward makes it too noisy
+  dql.win_reward = 0
 
 
 # use dql vs. random player's game log to train
-    for i in range(1000):
-        dql.epsilon = 0.05/((i+1)/20) 
-        print('dql epsilon: {:.04f}'.format(dql.epsilon))
-        print('data generation iteration {:d}'.format(i))
-        dql.generate_data_smithy(100)
-        dql.generate_data_rl(100)
-        dql.generate_data(100)
-        print('data sample size = {:d}'.format(dql.data[0].shape[0]))
-        dql.do_target_iteration()
-        dql.save_model('./model/DQLSarsa_buy_only_v0_iteration_{:03d}'.format(i+1))
-        # evaluate against random bot and smithy bot
-        p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
-        p1.epsilon=0.0
-        p_smith = SmithyBot()
-        print(compare_bots([p1, RandomPlayer()],10))
-        print(compare_bots([p1, p_smith],10))
+  for i in range(1000):
+    dql.epsilon = 0.05/((i+1)/20) 
+    print('dql epsilon: {:.04f}'.format(dql.epsilon))
+    print('data generation iteration {:d}'.format(i))
+    dql.generate_data_smithy(100)
+    dql.generate_data_rl(100)
+    dql.generate_data(100)
+    print('data sample size = {:d}'.format(dql.data[0].shape[0]))
+    dql.do_target_iteration()
+    dql.save_model('./model/DQLSarsa_buy_only_v0_iteration_{:03d}'.format(i+1))
+    # evaluate against random bot and smithy bot
+    p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+    p1.epsilon=0.0
+    p_smith = SmithyBot()
+    print(compare_bots([p1, RandomPlayer()],10))
+    print(compare_bots([p1, p_smith],10))
 
 
 ####### 

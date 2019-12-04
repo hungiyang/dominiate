@@ -388,7 +388,7 @@ class DQLSalsaAgent():
         pickle.dump((d_buy, d_act), f)
     return (d_buy, d_act)
 
-  def compute_target(self, data):
+  def compute_target_old(self, data):
     """
         compute_target use the target network to predict the Q value
         n is the next state
@@ -409,6 +409,38 @@ class DQLSalsaAgent():
         target.append(r)
     sa = np.array(sa)
     target = np.array(target)
+    return sa, target
+
+  def compute_target(self, data):
+    """
+        compute_target use the target network to predict the Q value
+        n is the next state
+        with a Q(s,a) model
+        compute r + gamma*max_a' Q(s',a')
+        It outputs the target that the deep neural network wants to fit for.
+        a' are the possible actions
+        Try to parallelize the model.predict() part
+        this is 10 times faster that the old code
+        """
+    safull = []
+    ind = []
+    target = []
+    sa = []
+    for i,(s,a,r,ns,a_opt,isend) in enumerate(data):
+      sa.append(np.concatenate([s, a]))
+      target.append(float(r))
+      if not isend:
+        safull.append(np.concatenate([ns, np.zeros_like(a)]).reshape(1,-1))
+        [safull.append(np.concatenate([ns, a]).reshape(1,-1)) for a in np.eye(len(a_opt))[np.array(a_opt, dtype=bool)]]
+        ind.append(i*np.ones((int(sum(a_opt)+1),1)))  # record which data point each sa belongs to
+    safull = np.concatenate(safull)
+    ind = np.asarray(np.concatenate(ind, axis=0), dtype=int)
+    Qp = self.model_target.predict(safull)
+    for i in np.unique(ind): # loop over data point i that are not terminal s,a
+      # pretty inefficient, but shouldn't be the bottle neck
+      target[i] += self.gamma*np.max(Qp[np.where(ind==i)[0]])
+    target = np.array(target)
+    sa = np.array(sa)
     return sa, target
 
   def draw_sample(self):
