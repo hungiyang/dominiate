@@ -8,6 +8,7 @@ from rl_agent import RLPlayer, RandomPlayer, BuyActRLplayer
 import pickle
 import random
 import time
+from dqltrainer import DQLSarsaAgent
 from sarsa_trainer import SarsaAgent, SarsaActBuyAgent
 #import tensorflow as tf
 

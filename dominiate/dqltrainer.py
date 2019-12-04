@@ -176,7 +176,7 @@ class DQLagent():
     return d_this
 
 
-class DQLSalsaAgent():
+class DQLSarsaAgent():
   """
     Jayden suggested the idea of recording the possible action in each step.
     With this, we can use the more theoretically sound deep Q learning method,

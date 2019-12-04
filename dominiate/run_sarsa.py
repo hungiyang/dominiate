@@ -8,7 +8,7 @@ from rl_agent import *
 import numpy as np
 import pickle as pk
 import tensorflow as tf
-from dqltrainer import DQLagent, DQLSalsaAgent
+from dqltrainer import DQLagent, DQLSarsaAgent
 from dqlvaluetrainer import DQLValueAgent, ARagent
 from sarsa_trainer import SarsaAgent
 
@@ -17,7 +17,7 @@ from sarsa_trainer import SarsaAgent
 ## Train against only RL itself and Smithy
 if 1:
   # generate one game of Smithy vs. Smithy
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -70,7 +70,7 @@ if 1:
 ## Train against only RL itself and Smithy
 if 0:
   # generate one game of Smithy vs. Smithy
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -121,7 +121,7 @@ if 0:
 ## Try gamma=0.96, mtrain=5000, 10 iterations.
 if 0:
   # generate one game of Smithy vs. Smithy
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -173,7 +173,7 @@ if 0:
 ## Try gamma=0.97, mtrain=5000, 10 iterations.
 if 0:
   # generate one game of Smithy vs. Smithy
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -228,7 +228,7 @@ if 0:
 ## Try gamma=0.98, mtrain=5000, 10 iterations.
 if 0:
   # generate one game of Smithy vs. Smithy
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -279,12 +279,12 @@ if 0:
 
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
-# New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
+# New training scheme with bootstrap. DQLSarsaAgent in dqltrainer.py
 # increase gamma to 0.99, with the other options the same as v5.
 # Since v5 is doing pretty well
 if 0:
   # generate one game of Smithy vs. Smithy
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -333,11 +333,11 @@ if 0:
     print(dql.model_predict.predict(sa).T)
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
-# New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
+# New training scheme with bootstrap. DQLSarsaAgent in dqltrainer.py
 # increase gamma to 1.0
 if 0:
   # generate one game of Smithy vs. Smithy
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -386,11 +386,11 @@ if 0:
     print(dql.model_predict.predict(sa).T)
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
-# New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
+# New training scheme with bootstrap. DQLSarsaAgent in dqltrainer.py
 # increase gamma to 0.99
 if 0:
   # generate one game of Smithy vs. Smithy
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -440,11 +440,11 @@ if 0:
 
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
-# New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
+# New training scheme with bootstrap. DQLSarsaAgent in dqltrainer.py
 # increase gamma to 0.95
 if 0:
   # generate one game of Smithy vs. Smithy
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -493,10 +493,10 @@ if 0:
     print(dql.model_predict.predict(sa).T)
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
-# New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
+# New training scheme with bootstrap. DQLSarsaAgent in dqltrainer.py
 if 0:
   # generate one game of Smithy vs. Smithy
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -544,10 +544,10 @@ if 0:
     print(dql.model_predict.predict(sa).T)
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
-# New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
+# New training scheme with bootstrap. DQLSarsaAgent in dqltrainer.py
 if 0:
   # generate one game of Smithy vs. Smithy
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -597,9 +597,9 @@ if 0:
 
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
-# New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
+# New training scheme with bootstrap. DQLSarsaAgent in dqltrainer.py
 if 0:
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -648,9 +648,9 @@ if 0:
     print(dql.model_predict.predict(sa))
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
-# New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
+# New training scheme with bootstrap. DQLSarsaAgent in dqltrainer.py
 if 0:
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -702,10 +702,10 @@ if 0:
 
 
 # Train against rlbot itself/smithy bot as opponent, deeper network
-# New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
+# New training scheme with bootstrap. DQLSarsaAgent in dqltrainer.py
 # unfortunately it seems to diverge. Try reducing gamma?
 if 0:
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = RandomPlayer()
   p1.record_history = 1
   p2 = RandomPlayer()
@@ -749,9 +749,9 @@ if 0:
 
 
 ###### train against rlbot itself/smithy bot as opponent, deeper network
-# New training scheme with bootstrap. DQLSalsaAgent in dqltrainer.py
+# New training scheme with bootstrap. DQLSarsaAgent in dqltrainer.py
 if 0:
-  dql = DQLSalsaAgent()
+  dql = DQLSarsaAgent()
   p1 = RandomPlayer()
   p1.record_history = 1
   p2 = RandomPlayer()
