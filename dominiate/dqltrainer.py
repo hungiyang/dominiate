@@ -229,7 +229,7 @@ class DQLSalsaAgent():
         loss='mean_squared_error',
         metrics=['mean_squared_error'])
     # initiate network
-    model.fit(sa, target, epochs=1)
+    model.fit(sa, target, epochs=1, verbose = 1)
     self.model_predict = model
     # target network
     model = tf.keras.models.Sequential([
@@ -246,7 +246,7 @@ class DQLSalsaAgent():
         loss='mean_squared_error',
         metrics=['mean_squared_error'])
     # initiate network
-    model.fit(sa, target, epochs=1)
+    model.fit(sa, target, epochs=1, verbose = 1)
     self.model_target = model
     return
 
@@ -531,10 +531,11 @@ class DQLSalsaAgent():
 
   def do_target_iteration(self):
     for j in range(self.target_iterations):
-      print('start target model iteration {:d}'.format(j))
+      #print('start target model iteration {:d}'.format(j))
       # set the weights of the target model to predict model
       self.model_target.set_weights(self.model_predict.get_weights())
       for i in range(self.predict_iterations):
+        print('prediction model iteration {:d}'.format(i))
         self.fit_target(self.draw_sample())
 
   def draw_sample(self):
