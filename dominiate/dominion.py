@@ -174,7 +174,7 @@ def test_game():
     results = game.run()
     return results
 
-def play_rlbot(fname='model_upload/BuyActRL_v2_iteration_999', dql='', version = 'SarsaAgent', pre_witch=0):
+def play_rlbot(fname='model_upload/BuyActRL_v2_iteration_999', dql='', version = 'SarsaActBuyAgent', pre_witch=0):
     player1 = HumanPlayer('You')
     player2, dql = load_rl_bot(fname,dql,version, pre_witch)
     game = Game.setup([player1, player2], variable_cards,False)
