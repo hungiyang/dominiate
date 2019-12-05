@@ -12,27 +12,34 @@ def evaluate_agent_evolution(model_name, ngame=10, version = 'SarsaAgent', pre_w
   idx = int(np.where([x.isdigit() for x in test[0].split('_')])[0])
   iteration = np.sort(np.unique([int(fn.split('_')[idx]) for fn in test]))
   pb = BigMoney()
-  [p, dql] = load_rl_bot('model/{:s}_iteration_001'.format(model_name), version=version,  pre_witch = pre_witch)
+  [p, dql] = load_rl_bot('model/{:s}_iteration_002'.format(model_name), version=version,  pre_witch = pre_witch)
   w1 = []
   w2 = []
   rl1= []
   rl2= []
   b1 = []
   b2 = []
+  success_iterations = []
   ngame = ngame
   for i in iteration:
     print(i)
-    p, _ = load_rl_bot('model/{:s}_iteration_{:03d}'.format(model_name,i), dql, version = version,  pre_witch = pre_witch)
-    p.epsilon = 0
-    wins1, fs1 = compare_bots([p,pb],num_games=ngame,order=1)
-    wins2, fs2 = compare_bots([pb,p],num_games=ngame,order=1)
-    w1.append(wins1[p])
-    w2.append(wins2[p])
-    rl1.append(fs1[p])
-    rl2.append(fs2[p])
-    b1.append(fs1[pb])
-    b2.append(fs1[pb])
-  iteration = np.asarray(iteration, dtype=float)
+    try:  
+      p, _ = load_rl_bot('model/{:s}_iteration_{:03d}'.format(model_name,i), dql, version = version,  pre_witch = pre_witch)
+      p.epsilon = 0
+      wins1, fs1 = compare_bots([p,pb],num_games=ngame,order=1)
+      wins2, fs2 = compare_bots([pb,p],num_games=ngame,order=1)
+      w1.append(wins1[p])
+      w2.append(wins2[p])
+      rl1.append(fs1[p])
+      rl2.append(fs2[p])
+      b1.append(fs1[pb])
+      b2.append(fs1[pb])
+      success_iterations.append([i])
+    except:
+      print('loading {:d} failed.'.format(i))
+      pass
+    
+  iteration = np.asarray(success_iterations, dtype=float)
   w1 = np.asarray(w1, dtype=float)
   w2 = np.asarray(w2, dtype=float)
   rl1 = np.asarray(rl1, dtype=float)
@@ -41,15 +48,15 @@ def evaluate_agent_evolution(model_name, ngame=10, version = 'SarsaAgent', pre_w
   b2 = np.asarray(b2, dtype=float)
   if not os.path.exists('evolution'):
     os.makedirs('evolution')
-  fn = 'evolution/' + model_name
+  fn = 'evolution/' + model_name + '_{:d}'.format(ngame)
   with open(fn, 'wb') as f:
     pickle.dump((iteration,w1,w2,rl1,rl2,b1,b2,ngame), f)
   return (iteration,w1,w2,rl1,rl2,b1,b2,ngame)
 
-def load_model_evolution(model_name):
-  fn = 'evolution/' + model_name
+def load_model_evolution(model_name, ngame = 50):
+  fn = 'evolution/' + model_name + '_{:d}'.format(ngame)
   with open(fn, 'rb') as f:
-    return pickle.load((iteration,w1,w2,rl1,rl2,b1,b2,ngame), f)
+    return pickle.load(f)
 
 
 if __name__ == '__main__':
