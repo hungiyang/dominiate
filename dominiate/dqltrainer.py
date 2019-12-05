@@ -4,6 +4,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.keras.backend as K
 
+
 class DQLagent():
   """Legacy code. Does not work."""
 
@@ -86,8 +87,8 @@ class DQLagent():
     return self.gamma * qn + r
 
   def fit_target(self, data):
-    dql.target_iterations=50
-    dql.predic_iterations=50
+    dql.target_iterations = 50
+    dql.predic_iterations = 50
     """
         fit_target_network
         computes the target network prediction and fit for it with prediction
@@ -229,7 +230,7 @@ class DQLSarsaAgent():
         loss='mean_squared_error',
         metrics=['mean_squared_error'])
     # initiate network
-    model.fit(sa, target, epochs=1, verbose = 1)
+    model.fit(sa, target, epochs=1, verbose=1)
     self.model_predict = model
     # target network
     model = tf.keras.models.Sequential([
@@ -246,13 +247,12 @@ class DQLSarsaAgent():
         loss='mean_squared_error',
         metrics=['mean_squared_error'])
     # initiate network
-    model.fit(sa, target, epochs=1, verbose = 1)
+    model.fit(sa, target, epochs=1, verbose=1)
     self.model_target = model
     return
 
   def run(self, players):
-    game = DQLSarsaAgent.setup(players, self.variable_cards,
-                                  self.VICTORY_CARDS)
+    game = DQLSarsaAgent.setup(players, self.variable_cards, self.VICTORY_CARDS)
     # seems to have a bug that does not terminate game
     # set a limit of 5000 turns
     k = 0
@@ -426,19 +426,24 @@ class DQLSarsaAgent():
     ind = []
     target = []
     sa = []
-    for i,(s,a,r,ns,a_opt,isend) in enumerate(data):
+    for i, (s, a, r, ns, a_opt, isend) in enumerate(data):
       sa.append(np.concatenate([s, a]))
       target.append(float(r))
       if not isend:
-        safull.append(np.concatenate([ns, np.zeros_like(a)]).reshape(1,-1))
-        [safull.append(np.concatenate([ns, a]).reshape(1,-1)) for a in np.eye(len(a_opt))[np.array(a_opt, dtype=bool)]]
-        ind.append(i*np.ones((int(sum(a_opt)+1),1)))  # record which data point each sa belongs to
+        safull.append(np.concatenate([ns, np.zeros_like(a)]).reshape(1, -1))
+        [
+            safull.append(np.concatenate([ns, a]).reshape(1, -1))
+            for a in np.eye(len(a_opt))[np.array(a_opt, dtype=bool)]
+        ]
+        ind.append(i * np.ones(
+            (int(sum(a_opt) + 1),
+             1)))  # record which data point each sa belongs to
     safull = np.concatenate(safull)
     ind = np.asarray(np.concatenate(ind, axis=0), dtype=int)
     Qp = self.model_target.predict(safull)
-    for i in np.unique(ind): # loop over data point i that are not terminal s,a
+    for i in np.unique(ind):  # loop over data point i that are not terminal s,a
       # pretty inefficient, but shouldn't be the bottle neck
-      target[i] += self.gamma*np.max(Qp[np.where(ind==i)[0]])
+      target[i] += self.gamma * np.max(Qp[np.where(ind == i)[0]])
     target = np.array(target)
     sa = np.array(sa)
     return sa, target
@@ -533,8 +538,7 @@ class DQLSarsaAgent():
     final_scores = {bot: [] for bot in bots}
     for i in range(num_games):
       random.shuffle(bots)
-      game = DQLSarsaAgent.setup(bots, self.variable_cards,
-                                    self.VICTORY_CARDS)
+      game = DQLSarsaAgent.setup(bots, self.variable_cards, self.VICTORY_CARDS)
       results = game.run()
       maxscore = 0
       for bot, score in results:
@@ -551,11 +555,11 @@ class DQLSarsaAgent():
     return wins, final_scores
 
   def fit_target(self, data):
+    """Fit_target_network.
+
+    Computes the target network prediction and fit for it with prediction
+    network.
     """
-        fit_target_network
-        computes the target network prediction and fit for it with prediction
-        network
-        """
     # state, action, reward, next state
     sa, target = self.compute_target(data)
     self.model_predict.fit(sa, target, epochs=self.epochs, verbose=1)
@@ -571,9 +575,7 @@ class DQLSarsaAgent():
         self.fit_target(self.draw_sample())
 
   def draw_sample(self):
-    """
-        draw random samples from the full dataset generated
-        """
+    """Draws random samples from the full dataset generated."""
     m = len(self.data)
     select = np.random.choice(m, self.mtrain, replace=False)
     return self.data[select]
@@ -594,33 +596,32 @@ class DQLSarsaAgent():
     if self.data_act == []:
       self.data_act = np.array(data)
     else:
-      self.data_act = np.concatenate([self.data_act, np.array(data)]) 
+      self.data_act = np.concatenate([self.data_act, np.array(data)])
     # truncate data_act down to replay buffer size
     if self.data_act.shape[0] > self.replaybuffer:
-      print('truncate {:d} samples'.format(self.data_act.shape[0] - self.replaybuffer))
+      print('truncate {:d} samples'.format(self.data_act.shape[0] -
+                                           self.replaybuffer))
       self.data_act = self.data_act[-self.replaybuffer:]
     return
 
   @staticmethod
   def setup(players, var_cards=(), VICTORY_CARDS=VICTORY_CARDS, simulated=True):
     """Set up the game.
-    Put this here because I want to try out different numbers of province. I'm hoping that in a longer game, 
+
+    Put this here because I want to try out different numbers of province. I'm
+    hoping that in a longer game,
     the AI can learn to play engine.
     """
     counts = {
         estate: VICTORY_CARDS[len(players)],
         duchy: VICTORY_CARDS[len(players)],
         province: VICTORY_CARDS[len(players)],
-        curse: 10*(len(players)-1),
-        copper: 60 - 7*len(players),
+        curse: 10 * (len(players) - 1),
+        copper: 60 - 7 * len(players),
         silver: 40,
         gold: 30
     }
     counts.update({card: 10 for card in var_cards})
-
     playerstates = [PlayerState.initial_state(p) for p in players]
     random.shuffle(playerstates)
     return Game(playerstates, counts, turn=0, simulated=simulated)
-
-
-
