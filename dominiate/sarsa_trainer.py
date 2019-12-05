@@ -89,6 +89,21 @@ class SarsaAgent():
         self.model.load_weights(fname + '_ar.h5')
         return
 
+    def generate_data_bot(self, bot, ngames = 50, fname='')
+        """
+        generate a new batch of data with the latest prediction model self.model
+        rl vs. specified bot
+        """
+        vf = lambda x: self.model.predict(x)
+        p1 = RLPlayer(vf)
+        p1.epsilon = self.epsilon
+        p1.record_history = 1
+        p1.include_action =  1
+        bot.record_history = 0
+        d_this = self.record_game(ngames, [p1,bot],fname)
+        self.add_data(d_this)
+        return d_this
+
     def generate_data(self, ngames=50, fname=''):
         """
         generate a new batch of data with the latest prediction model self.model_predict
@@ -143,7 +158,7 @@ class SarsaAgent():
         return d_this
 
     ###### Move dominion.py functions here for consistency
-    # easier to modify for different fittin and reward functions
+    # easier to modify for different fitting and reward functions
 
     def compare_bots(self, bots, num_games=50):
         start_time = time.time()
@@ -261,13 +276,6 @@ class SarsaAgent():
         rewards = np.concatenate(rewards).reshape([-1,1])
         next_states = np.concatenate(next_states)
         aggregated_rewards = np.concatenate(aggregated_rewards).reshape([-1,1])
-        ## only save the data vector if a card is bought (action!=0) -> I think this part is a mistake ...
-        #select = np.sum(actions, 1) > 0
-        #states = states[select,:]
-        #actions = actions[select,:]
-        #rewards = rewards[select,:]
-        #next_states = next_states[select,:]
-        #aggregated_rewards = aggregated_rewards[select,:]
         if not filename == '':
             with open(filename, 'wb') as f:
                 pickle.dump((states, actions, rewards, next_states, aggregated_rewards), f)
