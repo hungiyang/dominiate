@@ -2,7 +2,7 @@ from game import *
 from players import *
 from basic_ai import *
 from combobot import *
-from cards import variable_cards
+from cards import *
 from collections import defaultdict
 from rl_agent import RLPlayer, RandomPlayer, BuyActRLplayer
 import pickle
@@ -64,6 +64,7 @@ def compare_rl_bots(fn1, fn2, num_games = 50, order = 0):
     print('fight!')
     return compare_bots([p1, p2], num_games, order)
     
+"""
 def load_rl_bot(fn, dql='', pre_witch=0, actbot = 0):
     if dql == '':
         if actbot:
@@ -99,9 +100,69 @@ def load_rl_bot(fn, dql='', pre_witch=0, actbot = 0):
         p1.name = fn
     p1.epsilon = 0
     return (p1, dql)
+"""
 
-
-    
+def load_rl_bot(fn, dql='', version = 'SarsaAgent', pre_witch = 0):
+    if dql == '':
+        if version == 'SarsaActBuyAgent':
+            pr = RandomPlayer()
+            pr.record_history=1
+            dql = SarsaActBuyAgent()
+            data = dql.record_game(1, [pr, SmithyBot()],verbose=0)
+            dql.length=(data[0].shape[1]+data[1].shape[1])
+            dql.create_model_5layers()
+            dql.create_act_model()
+            dql.fit(data)
+            dql.fit_act(data)
+            dql.load_model(fn)
+            p1 = BuyActRLplayer(lambda x: dql.model.predict(x), lambda x: dql.model_act.predict(x))
+            p1.name = fn
+        elif version == 'SarsaAgent':
+            if pre_witch:
+                variable_cards_this = [
+                    village, cellar, smithy, festival, market, laboratory, chapel, warehouse,
+                    council_room, militia, moat ]
+                pr = RandomPlayer()
+                pr.record_history=1
+                dql = SarsaAgent()
+                dql.variable_cards = variable_cards_this
+                data = dql.record_game(1, [pr, SmithyBot()])
+                print(data[0].shape)
+                print(data[1].shape)
+            else:
+                pr = RandomPlayer()
+                pr.record_history=1
+                data = record_game(1, [pr, SmithyBot()])
+            dql = SarsaAgent(length=(data[0].shape[1]+data[1].shape[1]))
+            dql.create_model_5layers()
+            dql.fit(data)
+            dql.load_model(fn)
+            p1 = RLPlayer(lambda x: dql.model.predict(x))
+            p1.name = fn
+        elif version == 'DQLSarsaAgent':
+            dql = DQLSarsaAgent()
+            p1 = SmithyBot()
+            p1.record_history = 1
+            dbuy, _ = dql.record_game(1, [p1,SmithyBot()])
+            sa = np.array([np.concatenate([s,a]) for s,a,r,_,_,_ in dbuy])
+            r = np.array([r for s,a,r,_,_,_ in dbuy])
+            dql.create_model(sa, r)
+            dql.load_model(fn)
+            p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+            p1.name = fn
+        else:
+            print('No such version of Agent!')
+            raise 
+    else:
+        # if dql is NN is already initialized.
+        dql.load_model(fn)
+        if version == 'DQLSarsaAgent':
+            p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
+        else:   
+            p1 = RLPlayer(lambda x: dql.model.predict(x))
+        p1.name = fn
+    p1.epsilon = 0
+    return (p1, dql)
     
 
 def test_game():
@@ -113,19 +174,9 @@ def test_game():
     results = game.run()
     return results
 
-def play_rlbot(fname='model_upload/combination_v0_iteration_999', dql='', pre_witch=0, actbot=0):
-    # 764 also quite strong
+def play_rlbot(fname='model_upload/combination_v0_iteration_999', dql='', version = 'SarsaAgent', pre_witch=0):
     player1 = HumanPlayer('You')
-    player2, dql = load_rl_bot(fname,dql, pre_witch, actbot)
-    ## initialize the network
-    #dql = SarsaAgent()
-    #dql.create_model_5layers()
-    #data = dql.load_game_data('1game')
-    #dql.fit(data)
-    #dql.load_model(fname)
-    #player2 = RLPlayer(lambda x: dql.model.predict(x))
-    #player2.epsilon=0
-    #player2.setLogLevel(logging.INFO)
+    player2, dql = load_rl_bot(fname,dql,version, pre_witch)
     game = Game.setup([player1, player2], variable_cards,False)
     game.run()
     return dql
@@ -178,7 +229,7 @@ def scores_to_data(scores, gamma = 0.99):
         states.append(player.states)
         actions.append(player.actions)
         rewards.append(player.rewards)
-        next_states.append(player.next_states)
+        next_states.append(player.choices)
         ar = np.zeros_like(player.rewards,dtype=float)
         for i,r in enumerate(player.rewards[::-1]):
             ar[i] = r + gamma*ar[i-1]

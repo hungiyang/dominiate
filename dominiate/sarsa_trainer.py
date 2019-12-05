@@ -24,6 +24,7 @@ class SarsaAgent():
         self.replaybuffer = 1000000
         self.win_reward = 100
         self.reward_points_per_turn = 1
+        self.variable_cards = variable_cards
 
     def create_model(self):
         model = tf.keras.models.Sequential([
@@ -168,7 +169,7 @@ class SarsaAgent():
         final_scores = {bot:[] for bot in bots}
         for i in range(num_games):
             random.shuffle(bots)
-            game = Game.setup(bots, variable_cards)
+            game = Game.setup(bots, self.variable_cards)
             results = game.run()
             maxscore = 0
             for bot, score in results:
@@ -184,7 +185,7 @@ class SarsaAgent():
         return wins, final_scores
 
     def run(self, players):
-        game = Game.setup(players, variable_cards)
+        game = Game.setup(players, self.variable_cards)
         # seems to have a bug that does not terminate game
         # set a limit of 5000 turns 
         k = 0
@@ -224,7 +225,7 @@ class SarsaAgent():
             states.append(player.states)
             actions.append(player.actions)
             rewards.append(player.rewards)
-            next_states.append(player.next_states)
+            next_states.append(player.choices) # just put something random here lol, legacy code
             ar = np.zeros_like(player.rewards,dtype=float)
             for i,r in enumerate(player.rewards[::-1]):
                 ar[i] = r + self.gamma*ar[i-1]

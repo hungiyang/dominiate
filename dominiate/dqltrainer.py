@@ -251,7 +251,7 @@ class DQLSarsaAgent():
     return
 
   def run(self, players):
-    game = SarsaActBuyAgent.setup(players, self.variable_cards,
+    game = DQLSarsaAgent.setup(players, self.variable_cards,
                                   self.VICTORY_CARDS)
     # seems to have a bug that does not terminate game
     # set a limit of 5000 turns
@@ -533,7 +533,7 @@ class DQLSarsaAgent():
     final_scores = {bot: [] for bot in bots}
     for i in range(num_games):
       random.shuffle(bots)
-      game = SarsaActBuyAgent.setup(bots, self.variable_cards,
+      game = DQLSarsaAgent.setup(bots, self.variable_cards,
                                     self.VICTORY_CARDS)
       results = game.run()
       maxscore = 0
