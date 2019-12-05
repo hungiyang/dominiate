@@ -11,13 +11,13 @@ class SarsaAgent():
     No need for two net work. Just one network to fit for the aggregated reward for 
     each (s,a) pair
     """
-    def __init__(self, epochs=10, length=129):
+    def __init__(self, epochs=10, length=129, gamma=0.99):
         self.epochs=epochs
         self.fit_iterations=10
         self.length = length
         # number of samples drawn every time
         self.mtrain = 1000
-        self.gamma = 0.99
+        self.gamma = gamma
         self.epsilon = 0.1
         self.create_model()
         self.data = []
@@ -26,16 +26,15 @@ class SarsaAgent():
         self.reward_points_per_turn = 1
         self.variable_cards = variable_cards
 
-    def create_model(self):
-        model = tf.keras.models.Sequential([
-          tf.keras.layers.Dense(self.length, activation='relu'),
-          tf.keras.layers.Dropout(0.2),
-          tf.keras.layers.Dense(self.length, activation='relu'),
-          tf.keras.layers.Dropout(0.2),
-          tf.keras.layers.Dense(30, activation='relu'),
-          tf.keras.layers.Dropout(0.2),
-          tf.keras.layers.Dense(1, activation='linear')
-        ])
+    def create_model(self, num_layers=3, dropout=0.2):
+        layers = []
+        for _ in range(num_layers - 1):
+          layers.append(tf.keras.layers.Dense(self.length, activation='relu'))
+          layers.append(tf.keras.layers.Dropout(dropout))
+        layers.append(tf.keras.layers.Dense(30, activation='relu'))
+        layers.append(tf.keras.layers.Dropout(0.2))
+        layers.append(tf.keras.layers.Dense(1, activation='linear'))
+        model = tf.keras.models.Sequential(layers)
         model.compile(optimizer='adam',
                       loss='mean_squared_error',
                       metrics=['mean_squared_error'])
@@ -43,24 +42,7 @@ class SarsaAgent():
         return
 
     def create_model_5layers(self):
-        model = tf.keras.models.Sequential([
-          tf.keras.layers.Dense(self.length, activation='relu'),
-          tf.keras.layers.Dropout(0.2),
-          tf.keras.layers.Dense(self.length, activation='relu'),
-          tf.keras.layers.Dropout(0.2),
-          tf.keras.layers.Dense(self.length, activation='relu'),
-          tf.keras.layers.Dropout(0.2),
-          tf.keras.layers.Dense(self.length, activation='relu'),
-          tf.keras.layers.Dropout(0.2),
-          tf.keras.layers.Dense(30, activation='relu'),
-          tf.keras.layers.Dropout(0.2),
-          tf.keras.layers.Dense(1, activation='linear')
-        ])
-        model.compile(optimizer='adam',
-                      loss='mean_squared_error',
-                      metrics=['mean_squared_error'])
-        self.model = model
-        return
+        return self.create_model(num_layers=5)
 
     def add_data(self, data):
         if self.data == []:
