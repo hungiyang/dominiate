@@ -181,14 +181,11 @@ def play_rlbot(fname='model_upload/BuyActRL_v2_iteration_999', dql='', version =
     game.run()
     return dql
 
-def human_game():
-    #player1 = smithyComboBot
-    #player2 = chapelComboBot
-    #player3 = HillClimbBot(2, 3, 40)
-    player1 = SmithyCouncilBot()
-    player4 = HumanPlayer('You')
-    #game = Game.setup([player1, player2, player3, player4], variable_cards[-10:])
-    game = Game.setup([player1, player4], variable_cards,False)
+def human_game(p = []):
+    if p == []:
+        p = SmithyBot()
+    ready_player_one = HumanPlayer('You')
+    game = Game.setup([p, ready_player_one], variable_cards,False)
     return game.run()
 
 def run(players, win_reward = 0):

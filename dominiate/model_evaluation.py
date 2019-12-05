@@ -59,6 +59,8 @@ def load_model_evolution(model_name, ngame = 50):
     return pickle.load(f)
 
 
+
+
 if __name__ == '__main__':
   import argparse
   parser = argparse.ArgumentParser(description='Model parameters')

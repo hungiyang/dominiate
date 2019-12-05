@@ -15,7 +15,7 @@ from sarsa_trainer import SarsaAgent
 ## Since v10 works very well, run it for longer
 ## Try a smaller training epoch
 ## Try gamma=0.97, mtrain=5000, 10 iterations, epochs = 5
-if 1:
+if 0:
   # generate one game of Smithy vs. Smithy
   dql = DQLSarsaAgent()
   p1 = SmithyBot()
@@ -1200,7 +1200,7 @@ if 0:
 ###### train against rlbot itself/random bot/smithy bot as opponent, deeper network, incentivize short games
 # change the act priority calculation
 # add non buy decisions into training data
-if 0:
+if 1:
   p1 = RandomPlayer()
   p1.record_history = 1
   p2 = RandomPlayer()
@@ -1236,7 +1236,7 @@ if 0:
     print('data sample size = {:d}'.format(dql.data[0].shape[0]))
     dql.do_train()
     dql.save_model(
-        './model/combination_with_witch_v1_iteration_{:03d}'.format(i + 1))
+        './model_temp/combination_with_witch_v1_iteration_{:03d}'.format(i + 1))
     print('data generation iteration {:d}'.format(i))
     dql.generate_data_smithy(100)
     dql.generate_data(100)

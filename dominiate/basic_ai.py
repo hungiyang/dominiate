@@ -2,6 +2,7 @@ from decision import TrashDecision, DiscardDecision
 from players import AIPlayer, BigMoney
 import cards as c
 import logging, sys
+import random
 
 class SmithyBot(BigMoney):
     def __init__(self, cutoff1=3, cutoff2=6, cards_per_smithy=8):
@@ -61,6 +62,59 @@ class SmithyWitchBot(BigMoney):
         if c.witch in decision.choices():
             return c.witch
         return c.smithy
+
+class RandomActionBot(BigMoney):
+    def __init__(self, cutoff1=3, cutoff2=6, cards_per_action=8):
+        self.cards_per_action = cards_per_action
+        self.name = 'RandomActionBot(%d, %d, %d)' % (cutoff1, cutoff2,
+        cards_per_action)
+        BigMoney.__init__(self, cutoff1, cutoff2)
+        self.cost2 = [cc for cc in c.variable_cards if cc.cost ==2]
+        self.cost3 = [cc for cc in c.variable_cards if cc.cost ==3]
+        self.cost4 = [cc for cc in c.variable_cards if cc.cost ==4]
+        self.cost5 = [cc for cc in c.variable_cards if cc.cost ==5]
+    
+    def num_actions(self, state):
+        return len([c for c in state.all_cards() if c.actions])
+    def shuffle_all(self):
+        random.shuffle(self.cost2)
+        random.shuffle(self.cost3)
+        random.shuffle(self.cost4)
+        random.shuffle(self.cost5)
+        return
+
+    def buy_priority_order(self, decision):
+        state = decision.state()
+        provinces_left = decision.game.card_counts[c.province]
+        if ((self.num_actions(state) + 1) * self.cards_per_action
+           > state.deck_size()):
+            if provinces_left <= self.cutoff1:
+                order = [None, c.estate, c.silver, c.duchy, c.province]
+            elif provinces_left <= self.cutoff2:
+                order = [None, c.silver,  c.duchy, c.gold, c.province]
+            else:
+                order = [None, c.silver,  c.gold, c.province]
+        else: 
+            if provinces_left <= self.cutoff1:
+                order = [None, c.estate, c.silver, c.duchy, c.province]
+            elif provinces_left <= self.cutoff2:
+                self.shuffle_all()
+                order = [None] +  \
+                      self.cost2 + \
+                      self.cost3 +\
+                      self.cost4+\
+                      self.cost5+\
+                    [c.duchy, c.gold, c.province]
+            else:
+                self.shuffle_all()
+                order = [None] + \
+                      self.cost2 +\
+                      self.cost3 +\
+                      self.cost4+\
+                      self.cost5+\
+                      [c.gold, c.province]
+        return order
+
 
 class SmithyCouncilBot(BigMoney):
     def __init__(self, cutoff1=3, cutoff2=6, cards_per_smithy=8):
