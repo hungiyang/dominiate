@@ -11,13 +11,13 @@ class SarsaBootstrapAgent():
     Try using on plicy 
     """
 
-  def __init__(self, epochs=10):
+  def __init__(self, epochs=10, gamma=0.99):
     self.epochs = epochs
     self.target_iterations = 5
     self.predict_iterations = 200
     # number of samples drawn every time
     self.mtrain = 2000
-    self.gamma = 0.99
+    self.gamma = gamma
     self.epsilon = 0.1
     #self.create_model()
     self.data = []
@@ -31,7 +31,7 @@ class SarsaBootstrapAgent():
     def _make_model(num_layers, dropout):
         layers = []
         for _ in range(num_layers - 1):
-          layers.append(tf.keras.layers.Dense(self.length, activation='relu'))
+          layers.append(tf.keras.layers.Dense(128, activation='relu'))
           layers.append(tf.keras.layers.Dropout(dropout))
         layers.append(tf.keras.layers.Dense(30, activation='relu'))
         layers.append(tf.keras.layers.Dropout(dropout))
