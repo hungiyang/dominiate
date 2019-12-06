@@ -31,7 +31,7 @@ class SarsaBootstrapAgent():
     def _make_model(num_layers, dropout):
         layers = []
         for _ in range(num_layers - 1):
-          layers.append(tf.keras.layers.Dense(self.length, activation='relu'))
+          layers.append(tf.keras.layers.Dense(128, activation='relu'))
           layers.append(tf.keras.layers.Dropout(dropout))
         layers.append(tf.keras.layers.Dense(30, activation='relu'))
         layers.append(tf.keras.layers.Dropout(dropout))
