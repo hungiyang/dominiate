@@ -89,7 +89,7 @@ class SarsaAgent():
         self.model.load_weights(fname + '_ar.h5')
         return
 
-    def generate_data_bot(self, bot, ngames = 50, fname='')
+    def generate_data_bot(self, bot, ngames = 50, fname=''):
         """
         generate a new batch of data with the latest prediction model self.model
         rl vs. specified bot
