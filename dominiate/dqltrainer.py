@@ -204,48 +204,26 @@ class DQLSarsaAgent():
     self.VICTORY_CARDS = VICTORY_CARDS
     self.variable_cards = variable_cards
 
-  def create_model(self, sa, target):
-    model = tf.keras.models.Sequential([
-        tf.keras.layers.Dense(128, activation='relu'),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(64, activation='relu'),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(32, activation='relu'),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(1, activation='linear')
-    ])
-    #maske_value = -100
-    #def masked_mse(y_true, y_pred):
-    #    y_buy_true = y_true[:,0]
-    #    y_buy_pred = y_pred[:,0]
-    #    y_act_true = y_true[:,1]
-    #    y_act_pred = y_pred[:,1]
-    #    mask1 = K.cast(K.not_equal(y_buy_true, mask_value), K.floatx())
-    #    loss_buy = tf.losses.MeanSquaredError((y_buy_true*mask1, y_buy_pred*mask1))
-    #    mask2 = K.cast(K.not_equal(y_act_true, mask_value), K.floatx())
-    #    loss_act = tf.losses.MeanSquaredError((y_act_true*mask2, y_act_pred*mask2))
-    #    return loss_buy + loss_act
-    model.compile(
-        optimizer='adam',
-        loss='mean_squared_error',
-        metrics=['mean_squared_error'])
+  def create_model(self, sa, target, num_layers=3, dropout_prob=0.2):
+    def _make_model(num_layers, dropout):
+        layers = []
+        for _ in range(num_layers - 1):
+          layers.append(tf.keras.layers.Dense(self.length, activation='relu'))
+          layers.append(tf.keras.layers.Dropout(dropout))
+        layers.append(tf.keras.layers.Dense(30, activation='relu'))
+        layers.append(tf.keras.layers.Dropout(dropout))
+        layers.append(tf.keras.layers.Dense(1, activation='linear'))
+        model = tf.keras.models.Sequential(layers)
+        model.compile(optimizer='adam',
+                      loss='mean_squared_error',
+                      metrics=['mean_squared_error'])
+        return model
+    model = _make_model(num_layers, dropout)
     # initiate network
     model.fit(sa, target, epochs=1, verbose=1)
     self.model_predict = model
     # target network
-    model = tf.keras.models.Sequential([
-        tf.keras.layers.Dense(128, activation='relu'),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(64, activation='relu'),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(32, activation='relu'),
-        tf.keras.layers.Dropout(0.2),
-        tf.keras.layers.Dense(1, activation='linear')
-    ])
-    model.compile(
-        optimizer='adam',
-        loss='mean_squared_error',
-        metrics=['mean_squared_error'])
+    model = _make_model(num_layers, dropout)
     # initiate network
     model.fit(sa, target, epochs=1, verbose=1)
     self.model_target = model
