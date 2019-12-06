@@ -8,6 +8,7 @@ from rl_agent import RLPlayer, RandomPlayer, BuyActRLplayer
 import pickle
 import random
 import time
+import h5py
 from dqltrainer import DQLSarsaAgent
 from sarsa_trainer import SarsaAgent, SarsaActBuyAgent
 #import tensorflow as tf
@@ -102,6 +103,16 @@ def load_rl_bot(fn, dql='', pre_witch=0, actbot = 0):
     return (p1, dql)
 """
 
+def get_num_layers(fn):
+    """
+    get the number of layers of a .h5 weight file
+    """
+    with h5py.File(fn, 'r') as f:
+        # List all groups
+        all_key = list(f.keys())
+    return len([k for k in all_key if 'dropout' in k])	
+
+
 def load_rl_bot(fn, dql='', version = 'SarsaActBuyAgent', pre_witch = 0):
     if dql == '':
         if version == 'SarsaActBuyAgent':
@@ -134,7 +145,7 @@ def load_rl_bot(fn, dql='', version = 'SarsaActBuyAgent', pre_witch = 0):
                 pr.record_history=1
                 data = record_game(1, [pr, SmithyBot()])
             dql = SarsaAgent(length=(data[0].shape[1]+data[1].shape[1]))
-            dql.create_model_5layers()
+            dql.create_model(num_layers = get_num_layers(fn + '_ar.h5'))
             dql.fit(data)
             dql.load_model(fn)
             p1 = RLPlayer(lambda x: dql.model.predict(x))
