@@ -109,53 +109,26 @@ class SarsaAgent():
         generate a new batch of data with the latest prediction model self.model_predict
         rl vs. random bot
         """
-        vf = lambda x: self.model.predict(x)
-        p1 = RLPlayer(vf)
-        p1.epsilon = self.epsilon
-        p1.record_history = 1
-        p1.include_action =  1
-        p2 = RandomPlayer()
-        p2.record_history = 0
-        d_this = self.record_game(ngames, [p1,p2],fname)
-        self.add_data(d_this)
-        return d_this
-
+        return self.generate_data_bot(RandomPlayer(), ngames, fname)
 
     def generate_data_smithy(self, ngames=50, fname=''):
         """
         generate a new batch of data with the latest prediction model self.model_predict
         rl vs. smithy bot
         """
-        vf = lambda x: self.model.predict(x)
-        p1 = RLPlayer(vf)
-        p1.epsilon = self.epsilon
-        p1.record_history = 1
-        p1.include_action = 1
-        p2 = smithyComboBotFactory()
-        # try including smithy bot's data in the training.
-        p2.record_history = 0
-        d_this = self.record_game(ngames, [p1,p2],fname)
-        self.add_data(d_this)
-        return d_this
-
+        return self.generate_data_bot(smithyComboBotFactory(), ngames, fname)
 
     def generate_data_rl(self, ngames=50, fname=''):
         """
         generate a new batch of data with the latest prediction model self.model_predict
-        rl vs. smithy bot
+        by playing against self.
         """
         vf = lambda x: self.model.predict(x)
-        p1 = RLPlayer(vf)
-        p1.epsilon = self.epsilon
-        p1.record_history = 1
-        p1.include_action = 1
         p2 = RLPlayer(vf)
         p2.epsilon = self.epsilon
         p2.record_history = 1
         p2.include_action = 1
-        d_this = self.record_game(ngames, [p1,p2],fname,  verbose=0)
-        self.add_data(d_this)
-        return d_this
+        return self.generate_data_bot(p2, ngames, fname)
 
     ###### Move dominion.py functions here for consistency
     # easier to modify for different fitting and reward functions
