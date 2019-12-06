@@ -1,9 +1,11 @@
-from dominion import *
-from rl_agent import *
+from rl_agent import RLPlayer, RandomPlayer, BuyActRLplayer
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras.backend as K
-from cards import *
+from game import VICTORY_CARDS
+from cards import copper, silver, gold, curse, estate, duchy, province, CARD_VECTOR_ORDER,variable_cards
+import time
+import random
 
 
 class DQLagent():

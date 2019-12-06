@@ -1,11 +1,10 @@
 # write a function to submit training jobs instead of using run_sarsa.py
-from game import *
-from players import *
-from dominion import *
-from derivbot import *
-from cards import *
-from basic_ai import *
-from rl_agent import *
+from game import Game
+from players import HumanPlayer
+from basic_ai import SmithyBot
+from cards import variable_cards
+from basic_ai import SmithyBot
+from rl_agent import RLPlayer, RandomPlayer, BuyActRLplayer
 import numpy as np
 import pickle as pk
 import tensorflow as tf
@@ -14,9 +13,11 @@ from dqlvaluetrainer import DQLValueAgent, ARagent
 from sarsa_trainer import SarsaAgent
 from sarsa_on_policy_trainer import SarsaBootstrapAgent
 
-def run_agent(version = 'SarsaBootstrapAgent', gamma_comp = 0.02, epsilon = 0.05, dropout = 0.2):
+def run_agent(fn = 'sarsa_v0',version = 'SarsaBootstrapAgent', gamma_comp = 0.02, epsilon = 0.05, dropout = 0.2):
   if version == 'SarsaBootstrapAgent':
     dql = SarsaBootstrapAgent()
+  elif version == 'DQLSarsaAgent':
+    dql = DQLSarsaAgent()
   p1 = SmithyBot()
   p1.record_history = 1
   p2 = SmithyBot()
@@ -54,8 +55,7 @@ def run_agent(version = 'SarsaBootstrapAgent', gamma_comp = 0.02, epsilon = 0.05
     #dql.generate_data(100)
     print('data sample size = {:d}'.format(dql.data.shape[0]))
     dql.do_target_iteration()
-    dql.save_model('./model/Sarsa_on_policy_v1_iteration_{:03d}'.format(i +
-                                                                           1))
+    dql.save_model('./model/{:s}_iteration_{:03d}'.format(fn,i+1))
     # evaluate against random bot and smithy bot
     p1 = RLPlayer(lambda x: dql.model_predict.predict(x))
     p1.epsilon = 0.0

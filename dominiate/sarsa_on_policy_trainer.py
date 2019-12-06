@@ -1,9 +1,10 @@
-from dominion import *
-from rl_agent import *
+from rl_agent import RLPlayer, RandomPlayer, BuyActRLplayer
 import numpy as np
 import tensorflow as tf
-from cards import variable_cards
+from cards import copper, silver, gold, curse, estate, duchy, province, CARD_VECTOR_ORDER,variable_cards
 from game import Game, PlayerState, VICTORY_CARDS
+import time
+import random
 
 class SarsaBootstrapAgent():
   """
@@ -53,7 +54,7 @@ class SarsaBootstrapAgent():
     return
 
   def run(self, players):
-    game = DQLSarsaAgent.setup(players, self.variable_cards, self.VICTORY_CARDS)
+    game = self.setup(players, self.variable_cards, self.VICTORY_CARDS)
     # seems to have a bug that does not terminate game
     # set a limit of 5000 turns
     k = 0
@@ -242,33 +243,6 @@ class SarsaBootstrapAgent():
     sa = np.array(sa)
     return sa, target
 
-#  def compute_target(self, data):
-#    """
-#        compute_target use the target network to predict the Q value
-#        n is the next state
-#        with a Q(s,a) model
-#        compute r + gamma*max_a' Q(s',a')
-#        It outputs the target that the deep neural network wants to fit for.
-#        a' are the possible actions
-#        Try to parallelize the model.predict() part
-#        this is 10 times faster that the old code
-#        """
-#    safull = []
-#    ind = []
-#    target = []
-#    sa = []
-#    for i, (s, a, r, ns, na, isend) in enumerate(data):
-#      sa.append(np.concatenate([s, a]))
-#      target.append(float(r))
-#      if not isend:
-#        safull.append(np.concatenate([ns, ns]).reshape(1, -1))
-#    safull = np.concatenate(safull)
-#    print(safull.shape)
-#    qn = self.model_target.predict(safull)
-#    target = np.array(target)
-#    target = target + self.gamma*qn
-#    sa = np.array(sa)
-#    return sa, target
 
   def draw_sample(self):
     """
@@ -360,7 +334,7 @@ class SarsaBootstrapAgent():
     final_scores = {bot: [] for bot in bots}
     for i in range(num_games):
       random.shuffle(bots)
-      game = DQLSarsaAgent.setup(bots, self.variable_cards, self.VICTORY_CARDS)
+      game = self.setup(bots, self.variable_cards, self.VICTORY_CARDS)
       results = game.run()
       maxscore = 0
       for bot, score in results:
@@ -426,8 +400,7 @@ class SarsaBootstrapAgent():
       self.data_act = self.data_act[-self.replaybuffer:]
     return
 
-  @staticmethod
-  def setup(players, var_cards=(), VICTORY_CARDS=VICTORY_CARDS, simulated=True):
+  def setup(self, players, var_cards=(), VICTORY_CARDS=VICTORY_CARDS, simulated=True):
     """Set up the game.
 
     Put this here because I want to try out different numbers of province. I'm

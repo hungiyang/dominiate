@@ -1,8 +1,7 @@
-from game import *
-from players import *
-from basic_ai import *
-from combobot import *
-from cards import *
+from game import Game
+from players import HumanPlayer
+from basic_ai import SmithyBot
+from cards import variable_cards
 from collections import defaultdict
 from rl_agent import RLPlayer, RandomPlayer, BuyActRLplayer
 import pickle
@@ -176,15 +175,6 @@ def load_rl_bot(fn, dql='', version = 'SarsaActBuyAgent', pre_witch = 0):
     return (p1, dql)
     
 
-def test_game():
-    player1 = smithyComboBot
-    player2 = chapelComboBot
-    player3 = HillClimbBot(2, 3, 40)
-    player2.setLogLevel(logging.DEBUG)
-    game = Game.setup([player1, player2, player3], variable_cards)
-    results = game.run()
-    return results
-
 def play_rlbot(fname='model_upload/BuyActRL_v2_iteration_999', dql='', version = 'SarsaActBuyAgent', pre_witch=0):
     player1 = HumanPlayer('You')
     player2, dql = load_rl_bot(fname,dql,version, pre_witch)
@@ -314,6 +304,4 @@ def load_game_data(filename):
 
 
 if __name__ == '__main__':
-  players = [RLPlayer(lambda x: 0), smithyComboBotFactory()]
-  print(compare_bots(players))
-  #record_game(1000, players, "data/smithy_vs_rl")
+  play_rlbot()
