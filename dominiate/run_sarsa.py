@@ -1200,7 +1200,7 @@ if 0:
 ###### train against rlbot itself/random bot/smithy bot as opponent, deeper network, incentivize short games
 # change the act priority calculation
 # add non buy decisions into training data
-if 1:
+if 0:
   p1 = RandomPlayer()
   p1.record_history = 1
   p2 = RandomPlayer()
@@ -1236,7 +1236,7 @@ if 1:
     print('data sample size = {:d}'.format(dql.data[0].shape[0]))
     dql.do_train()
     dql.save_model(
-        './model_temp/combination_with_witch_v1_iteration_{:03d}'.format(i + 1))
+        './model/combination_with_witch_v1_iteration_{:03d}'.format(i + 1))
     print('data generation iteration {:d}'.format(i))
     dql.generate_data_smithy(100)
     dql.generate_data(100)
