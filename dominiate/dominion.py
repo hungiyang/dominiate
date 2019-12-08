@@ -1,3 +1,4 @@
+import numpy as np
 from game import Game
 from players import HumanPlayer
 from basic_ai import SmithyBot
