@@ -1,3 +1,4 @@
+import numpy as np
 from game import Game
 from decision import BuyDecision, ActDecision, TrashDecision, DiscardDecision, MultiDecision, INF
 import cards as c
@@ -33,9 +34,14 @@ class HumanPlayer(Player):
             # Don't ask the player to tell the AI what they'll do!
             return self.substitute_ai().make_decision(decision)
         state = decision.game.state()
-        print(state.hand)
+        allcards = state.hand + state.discard + state.tableau + state.drawpile
         print("Deck: %d cards" % state.deck_size())
+        print("whole deck:")
+        print(dict(zip(*np.unique(allcards, return_counts=True))))
+        print("hand:")
+        print(state.hand)
         print("VP: %d" % state.score())
+        print("Opponent VP: %d" % decision.game.playerstates[1-decision.game.player_turn].score())
         print(decision)
         if isinstance(decision, MultiDecision):
             chosen = self.make_multi_decision(decision)
@@ -44,14 +50,32 @@ class HumanPlayer(Player):
         return decision.choose(chosen)
 
     def make_single_decision(self, decision):
+        print('? for a description of the cards.')
         for index, choice in enumerate(decision.choices()):
-            print("\t[%d] %s" % (index, choice))
+            if choice != None:
+                print("\t[%d] %s (%d left)" % (index, choice, decision.game.card_counts[choice]))
+            else:
+                print("\t[%d] %s " % (index, choice))
         choice = input('Your choice: ')
         try:
             return decision.choices()[int(choice)]
         except (ValueError, IndexError):
-            # Try again
-            print("That's not a choice.")
+            if choice == '?':
+                print('moat(cost 2): +2 card, defense')
+                print('cellar(cost 2): +1 action, discard n cards, draw n cards')
+                print('chapel(cost 2): trash up to 4 cards')
+                print('village(cost 3): +1 card, +2 actions')
+                print('warehouse(cost 3): +1 action, +3 card, discard 3 card')
+                print('smithy(cost 4): +3 cards')
+                print('militia(cost 4): +2 coin, opponents discard 2 cards')
+                print('festival(cost 5): +2 action, +2 coin, +1 buy')
+                print('market(cost 5): +1 action, +1 card, +1 coin, +1 buy')
+                print('laboratory(cost 5): +1 action, +2 card')
+                print('council_room(cost 5): +4 cards, +1 buy, opponents +1 card')
+                print('witch(cost 5): +2 card, opponents gain curse')
+            else: 
+                # Try again
+                print("That's not a choice.")
             return self.make_single_decision(decision)
 
     def make_multi_decision(self, decision):

@@ -1,6 +1,7 @@
 # calculate the elo rating for different agents.
 # Let the players randomly match up with each other and adjust the ratings accourding to the formula
-from dominion import *
+from dominion import compare_bots
+from basic_ai import BigMoney
 
 
 def calculate_elo_vs_BigMoney(p, ngame = 50):
@@ -29,7 +30,7 @@ def calculate_elo_mixed_bot(plist):
   plist is a list of different bots to compare
   """
   # calculate the winrate of bot vs. bot
-  ngame = 100
+  ngame = 500
   winrate = {}
   for i in range(len(plist)-1):
     for j in range(i+1, len(plist)):
@@ -53,7 +54,7 @@ def calculate_elo_mixed_bot(plist):
         elolist[i] += K*(winrate[(i,j)] - wi)
         elolist[j] += K*(1-winrate[(i,j)] - wj)
 
-  return elolist
+  return elolist, winrate
 
 
     

@@ -518,6 +518,8 @@ class Game(object):
         ))
 
         self.log.info("%d provinces left" % self.card_counts[province])
+        self.log.info("%d duchies left" % self.card_counts[duchy])
+        self.log.info("%d estates left" % self.card_counts[estate])
         
         # Run AI hooks that need to happen before the turn.
         self.current_player().before_turn(self)
