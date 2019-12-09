@@ -176,7 +176,7 @@ def load_rl_bot(fn, dql='', version = 'SarsaActBuyAgent', pre_witch = 0):
     return (p1, dql)
     
 
-def play_rlbot(fname='model_upload/BuyActRL_v2_iteration_999', dql='', version = 'SarsaActBuyAgent', pre_witch=0):
+def play_rlbot(fname='model_upload/strong_vs_RandomAction', dql='', version = 'SarsaAgent', pre_witch=0):
     player1 = HumanPlayer('You')
     player2, dql = load_rl_bot(fname,dql,version, pre_witch)
     game = Game.setup([player1, player2], variable_cards,False)
