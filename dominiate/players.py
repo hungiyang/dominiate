@@ -51,6 +51,7 @@ class HumanPlayer(Player):
 
     def make_single_decision(self, decision):
         print('? for a description of the cards.')
+        print("?? for cards left.")
         for index, choice in enumerate(decision.choices()):
             if choice != None:
                 print("\t[%d] %s (%d left)" % (index, choice, decision.game.card_counts[choice]))
@@ -73,12 +74,17 @@ class HumanPlayer(Player):
                 print('laboratory(cost 5): +1 action, +2 card')
                 print('council_room(cost 5): +4 cards, +1 buy, opponents +1 card')
                 print('witch(cost 5): +2 card, opponents gain curse')
+            elif choice == '??':
+                for card, left in decision.game.card_counts.items():
+                    print("%s: %d left" % (card, left))
             else: 
                 # Try again
                 print("That's not a choice.")
             return self.make_single_decision(decision)
 
     def make_multi_decision(self, decision):
+        print('? for a description of the cards.')
+        print("?? for cards left.")
         for index, choice in enumerate(decision.choices()):
             print("\t[%d] %s" % (index, choice))
         if decision.min != 0:
@@ -87,20 +93,39 @@ class HumanPlayer(Player):
             print("Choose at most %d options." % decision.max)
         choices = input('Your choices (separated by commas): ')
         try:
+            choiceidx = [int(choice.strip())
+                      for choice in choices.split(',')]
             chosen = [decision.choices()[int(choice.strip())]
                       for choice in choices.split(',')]
         except (ValueError, IndexError):
-            # Try again
-            print("That's not a valid list of choices.")
-            return self.make_multi_decision(decision)
+            if choice == '?':
+                print('moat(cost 2): +2 card, defense')
+                print('cellar(cost 2): +1 action, discard n cards, draw n cards')
+                print('chapel(cost 2): trash up to 4 cards')
+                print('village(cost 3): +1 card, +2 actions')
+                print('warehouse(cost 3): +1 action, +3 card, discard 3 card')
+                print('smithy(cost 4): +3 cards')
+                print('militia(cost 4): +2 coin, opponents discard 2 cards')
+                print('festival(cost 5): +2 action, +2 coin, +1 buy')
+                print('market(cost 5): +1 action, +1 card, +1 coin, +1 buy')
+                print('laboratory(cost 5): +1 action, +2 card')
+                print('council_room(cost 5): +4 cards, +1 buy, opponents +1 card')
+                print('witch(cost 5): +2 card, opponents gain curse')
+            elif choice == '??':
+                for card, left in decision.game.card_counts.items():
+                    print("%s: %d left" % (card, left))
+            else: 
+                # Try again
+                print("That's not a valid list of choices.")
+                return self.make_multi_decision(decision)
         if len(chosen) < decision.min:
             print("You didn't choose enough things.")
             return self.make_multi_decision(decision)
         if len(chosen) > decision.max:
             print("You chose too many things.")
             return self.make_multi_decision(decision)
-        for ch in chosen:
-            if chosen.count(ch) > 1:
+        for ch in choiceidx:
+            if choiceidx.count(ch) > 1:
                 print("You can't choose the same thing twice.")
                 return self.make_multi_decision(decision)
             return chosen
