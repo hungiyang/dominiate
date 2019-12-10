@@ -93,12 +93,16 @@ class HumanPlayer(Player):
             print("Choose at most %d options." % decision.max)
         choices = input('Your choices (separated by commas): ')
         try:
-            choiceidx = [int(choice.strip())
-                      for choice in choices.split(',')]
-            chosen = [decision.choices()[int(choice.strip())]
-                      for choice in choices.split(',')]
+            if not choices:
+                choiceidx = []
+                chosen = []
+            else:
+                choiceidx = [int(choice.strip())
+                          for choice in choices.split(',')]
+                chosen = [decision.choices()[int(choice.strip())]
+                          for choice in choices.split(',')]
         except (ValueError, IndexError):
-            if choice == '?':
+            if choices == '?':
                 print('moat(cost 2): +2 card, defense')
                 print('cellar(cost 2): +1 action, discard n cards, draw n cards')
                 print('chapel(cost 2): trash up to 4 cards')
@@ -111,7 +115,7 @@ class HumanPlayer(Player):
                 print('laboratory(cost 5): +1 action, +2 card')
                 print('council_room(cost 5): +4 cards, +1 buy, opponents +1 card')
                 print('witch(cost 5): +2 card, opponents gain curse')
-            elif choice == '??':
+            elif choices == '??':
                 for card, left in decision.game.card_counts.items():
                     print("%s: %d left" % (card, left))
             else: 
@@ -128,7 +132,7 @@ class HumanPlayer(Player):
             if choiceidx.count(ch) > 1:
                 print("You can't choose the same thing twice.")
                 return self.make_multi_decision(decision)
-            return chosen
+        return chosen
     
     def substitute_ai(self):
         return BigMoney()
