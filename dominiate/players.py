@@ -89,7 +89,6 @@ class HumanPlayer(Player):
         try:
             chosen = [decision.choices()[int(choice.strip())]
                       for choice in choices.split(',')]
-            return chosen
         except (ValueError, IndexError):
             # Try again
             print("That's not a valid list of choices.")
@@ -104,6 +103,7 @@ class HumanPlayer(Player):
             if chosen.count(ch) > 1:
                 print("You can't choose the same thing twice.")
                 return self.make_multi_decision(decision)
+            return chosen
     
     def substitute_ai(self):
         return BigMoney()

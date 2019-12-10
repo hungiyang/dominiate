@@ -383,7 +383,8 @@ class Game(object):
         newgame = self.copy()
         for i in range(self.num_players()):
             if newgame.card_counts[curse] > 0:
-                if i == self.player_turn: continue
+                # don't curse yourself or players with defense (moat)
+                if i == self.player_turn or newgame.playerstates[i].is_defended(): continue
                 newgame.playerstates[i] = newgame.playerstates[i].gain(curse)
                 newgame.card_counts[curse] -= 1
         return newgame
