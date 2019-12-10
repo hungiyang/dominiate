@@ -1,0 +1,8 @@
+numpy==1.16.*
+matplotlib==3.*
+tensorflow==2.0.0
+mkl_random==1.1.0
+pickle
+h5py
+time
+logging
